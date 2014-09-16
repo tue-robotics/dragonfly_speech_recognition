@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<launch>
+
+    <node pkg="dragonfly_speech_recognition" type="speech_recognition.py" name="dragonfly_speech_recognition" />
+
+ </launch>
