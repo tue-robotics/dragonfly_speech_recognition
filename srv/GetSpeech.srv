@@ -1,0 +1,5 @@
+string spec
+Choice[] choices
+---
+string result
+Choice[] choices
