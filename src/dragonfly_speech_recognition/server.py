@@ -49,9 +49,9 @@ def recognize(spec, choices_values):
     print RESULT
     RESULT = None
 
-    print "Recognizing: ", spec, choices_values
-    print ENGINE
-    print dir(ENGINE)
+    #print "Recognizing: ", spec, choices_values
+    #print ENGINE
+    #print dir(ENGINE)
 
     grammar = Grammar("grammar")
 
@@ -85,7 +85,7 @@ ENGINE.speak('Speak recognition active!')
 
 try:
     while 1:
-        pythoncom.PumpWaitingMessages()
+        #pythoncom.PumpWaitingMessages()
         time.sleep(.1)
 except KeyboardInterrupt:
-    t.stop()
+    t._stop()
