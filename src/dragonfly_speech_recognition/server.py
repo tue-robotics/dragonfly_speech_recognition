@@ -40,7 +40,7 @@ class GrammarRule(CompoundRule):
         global RESULT
 
         RESULT = extras
-        print extras
+        print extras["name"]
 
 # RPC METHOD
 def recognize(spec, choices_values):
@@ -75,7 +75,7 @@ logging.basicConfig(level=logging.INFO)
 ENGINE = Sapi5InProcEngine()
 ENGINE.connect()
 
-recognize("Just call me <name>", {"name":["Michael","Cristopher","Matthew","Joshua","Daniel","David","Andrew","James","Justin","Joseph","Jessica","Ashley","Brittany","Amanda","Samantha","Sarah","Stephanie","Jennifer","Elizabeth","Lauren"]})
+#recognize("Just call me <name>", {"name":["Michael","Cristopher","Matthew","Joshua","Daniel","David","Andrew","James","Justin","Joseph","Jessica","Ashley","Brittany","Amanda","Samantha","Sarah","Stephanie","Jennifer","Elizabeth","Lauren"]})
 
 # Start server thread
 t = Thread(target=serverThread)
@@ -83,8 +83,9 @@ t.start()
 
 ENGINE.speak('Speak recognition active!')
 
-while 1:
-    pythoncom.PumpWaitingMessages()
-    time.sleep(.1)
-
-t.stop()
+try:
+    while 1:
+        pythoncom.PumpWaitingMessages()
+        time.sleep(.1)
+except KeyboardInterrupt:
+    t.stop()
