@@ -5,6 +5,8 @@ import time
 import logging
 import pythoncom
 
+# XML RPC SERVER
+from threading import Thread
 import xmlrpclib
 from SimpleXMLRPCServer import SimpleXMLRPCServer as Server
 
@@ -22,10 +24,11 @@ except:
     error("Failed to import dragonfly, path: %s"%dragonfly_path)
 
 #---------------------------------------------------------------------------
-# Set up basic logging.
 
 logging.basicConfig(level=logging.DEBUG)
 logging.getLogger("compound.parse").setLevel(logging.INFO)
+
+#---------------------------------------------------------------------------
 
 class GrammarRule(CompoundRule):
     spec = "(My name is|I am) <name>"
@@ -62,6 +65,11 @@ def loadGrammar():
     grammar.add_rule(GrammarRule())
     grammar.load()   
 
+def serverThread():
+    server = Server(("localhost", 8000))
+    print "Listening on port 8000..."
+    server.serve_forever()
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
@@ -70,11 +78,11 @@ if __name__ == "__main__":
 
     loadGrammar()
 
-    engine.speak('Speak recognition active!')
+    # Start server thread
+    t = Thread(target=serverThread)
+    t.start()
 
-    server = Server(("localhost", 8000))
-    print "Listening on port 8000..."
-    server.serve_forever()
+    engine.speak('Speak recognition active!')
 
     while 1:
         pythoncom.PumpWaitingMessages()
