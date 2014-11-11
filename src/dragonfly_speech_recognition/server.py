@@ -30,25 +30,19 @@ logging.getLogger("compound.parse").setLevel(logging.INFO)
 
 #---------------------------------------------------------------------------
 
-# Globals
-engine = None
-result = None
-
-#---------------------------------------------------------------------------
-
 class GrammarRule(CompoundRule):    
     def _process_recognition(self, node, extras):
-        result = extras
+        RESULT = extras
         print extras["name"]
 
 # RPC METHOD
 def recognize(spec, extras):
-    print result
-    result = None
+    print RESULT
+    RESULT = None
 
     print "Recognizing: ", spec, extras
-    print engine
-    print dir(engine)
+    print ENGINE
+    print dir(ENGINE)
 
     grammar = Grammar("grammar")
     rule = GrammarRule()
@@ -64,22 +58,21 @@ def serverThread():
     server.register_function(recognize, 'recognize')
     server.serve_forever()
 
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO)
 
-    engine = Sapi5InProcEngine()
-    engine.connect()
+ENGINE = Sapi5InProcEngine()
+ENGINE.connect()
 
-    recognize("Just call me <name>", {"name":["Michael","Cristopher","Matthew","Joshua","Daniel","David","Andrew","James","Justin","Joseph","Jessica","Ashley","Brittany","Amanda","Samantha","Sarah","Stephanie","Jennifer","Elizabeth","Lauren"]})
+recognize("Just call me <name>", {"name":["Michael","Cristopher","Matthew","Joshua","Daniel","David","Andrew","James","Justin","Joseph","Jessica","Ashley","Brittany","Amanda","Samantha","Sarah","Stephanie","Jennifer","Elizabeth","Lauren"]})
 
-    # Start server thread
-    t = Thread(target=serverThread)
-    t.start()
+# Start server thread
+t = Thread(target=serverThread)
+t.start()
 
-    engine.speak('Speak recognition active!')
+ENGINE.speak('Speak recognition active!')
 
-    while 1:
-        pythoncom.PumpWaitingMessages()
-        time.sleep(.1)
+while 1:
+    pythoncom.PumpWaitingMessages()
+    time.sleep(.1)
 
-    t.stop()
+t.stop()
