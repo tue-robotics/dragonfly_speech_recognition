@@ -1,26 +1,16 @@
 #!/usr/bin/env python
-import rospy
-import rospkg 
 
 import sys, os
 import time
 import logging
 import pythoncom
 
-rospack = rospkg.RosPack()
-
 def error(error):
     print "ERROR: %s"%error
     sys.exit()
 
-try:
-    dragonfly_path = "%s/deps/dragonfly"%rospack.get_path('dragonfly_speech_recognition')
-    compiled_msgs_path = "%s/compiled_msgs_srvs"%rospack.get_path('dragonfly_speech_recognition')
-except:
-    error("Could not get package path from package dragonfly_speech_recognition")
-
+dragonfly_path = "%s/../../deps/dragonfly"%os.path.dirname(os.path.realpath(__file__))
 sys.path.append(dragonfly_path)
-sys.path.append(compiled_msgs_path)
 
 try:
     from dragonfly.engines.backend_sapi5.engine import Sapi5InProcEngine
@@ -28,19 +18,13 @@ try:
 except:
     error("Failed to import dragonfly, path: %s"%dragonfly_path)
 
-try:
-    from dragonfly_speech_recognition.msg._Choice import Choice as ChoiceMsg
-    from dragonfly_speech_recognition.srv._GetSpeech import GetSpeech as GetSpeechSrv
-except:
-    error("Failed to import compiled msgs and srvs, path: %s"%compiled_msgs_path)
-
 #---------------------------------------------------------------------------
 # Set up basic logging.
 
 logging.basicConfig(level=logging.DEBUG)
 logging.getLogger("compound.parse").setLevel(logging.INFO)
 
-class NameRule(CompoundRule):
+class GrammarRule(CompoundRule):
     spec = "(My name is|I am) <name>"
     extras = [Choice("name",   {
                                     "Michael":"Michael",
@@ -70,16 +54,9 @@ class NameRule(CompoundRule):
     def _process_recognition(self, node, extras):
         print extras["name"]
 
-def doSpeechRecognition(req):
-    print req.data
-    res = String()
-    res.data = "omg"
-    return res
-
 def loadGrammar():
-    name_rule = NameRule()
-    grammar = Grammar("names and drinks choice")
-    grammar.add_rule(name_rule)
+    grammar = Grammar("grammar")
+    grammar.add_rule(GrammarRule())
     grammar.load()   
 
 if __name__ == "__main__":
@@ -90,10 +67,8 @@ if __name__ == "__main__":
 
     loadGrammar()
 
-    rospy.init_node('speech_recognition')
-    s = rospy.Service('speech_recognition', GetSpeechSrv, doSpeechRecognition)
+    engine.speak('beginning loop!')
 
-    r = rospy.Rate(10)
-    while not rospy.is_shutdown():
+    while 1:
         pythoncom.PumpWaitingMessages()
-        r.sleep()
+        time.sleep(.1)
