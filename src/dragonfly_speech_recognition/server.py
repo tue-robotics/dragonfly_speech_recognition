@@ -35,7 +35,9 @@ ENGINE = None
 
 #---------------------------------------------------------------------------
 
-class GrammarRule(CompoundRule):   
+class GrammarRule(CompoundRule):  
+    spec = "I want a <name>" 
+    extras = [Choice("name"), {"coke":"coke","fanta":"fanta"}]
     def _process_recognition(self, node, extras):
         global RESULT
 
@@ -55,12 +57,13 @@ def recognize(spec, choices_values, timeout):
 
     grammar = Grammar("grammar")
 
-    extras = []
-    for name, choices in choices_values.iteritems():
-        extras.append(Choice(name, dict((c,c) for c in choices)))
+#    extras = []
+#    for name, choices in choices_values.iteritems():
+#        extras.append(Choice(name, dict((c,c) for c in choices)))
 
-    Rule = type("Rule", (GrammarRule,),{"spec": spec, "extras": extras})
-    rule = Rule()
+#    Rule = type("Rule", (GrammarRule,),{"spec": spec, "extras": extras})
+#    rule = Rule()
+    rule = GrammarRule()
 
     grammar.add_rule(rule)
     grammar.load()   
