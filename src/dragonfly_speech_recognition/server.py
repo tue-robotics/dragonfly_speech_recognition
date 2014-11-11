@@ -6,7 +6,7 @@ import logging
 import pythoncom
 
 # XML RPC SERVER
-from threading import Thread, Event
+from threading import Thread
 import xmlrpclib
 from SimpleXMLRPCServer import SimpleXMLRPCServer as Server
 
@@ -88,8 +88,7 @@ ENGINE.connect()
 #recognize("Just call me <name>", {"name":["Michael","Cristopher","Matthew","Joshua","Daniel","David","Andrew","James","Justin","Joseph","Jessica","Ashley","Brittany","Amanda","Samantha","Sarah","Stephanie","Jennifer","Elizabeth","Lauren"]})
 
 # Start server thread
-t_stop = Event()
-t = Thread(target=serverThread,  args=(1, t_stop))
+t = Thread(target=serverThread)
 t.start()
 
 ENGINE.speak('Speak recognition active!')
@@ -99,9 +98,4 @@ try:
         #pythoncom.PumpWaitingMessages()
         time.sleep(.1)
 except KeyboardInterrupt:
-    t_stop.set()
-
-
-
-
-  
+    t._stop()
