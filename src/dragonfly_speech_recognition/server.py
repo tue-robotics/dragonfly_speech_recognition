@@ -25,33 +25,20 @@ except:
 
 #---------------------------------------------------------------------------
 
-logging.basicConfig(level=logging.DEBUG)
-logging.getLogger("compound.parse").setLevel(logging.INFO)
-
-#---------------------------------------------------------------------------
-
 RESULT = None
-ENGINE = None
 
 #---------------------------------------------------------------------------
 
 class GrammarRule(CompoundRule):   
     def _process_recognition(self, node, extras):
         global RESULT
-
         RESULT = extras
-        print extras["name"]
 
 # RPC METHOD
 def recognize(spec, choices_values, timeout):
+
     global RESULT
-
-    print RESULT
     RESULT = None
-
-    #print "Recognizing: ", spec, choices_values
-    #print ENGINE
-    #print dir(ENGINE)
 
     grammar = Grammar("grammar")
 
@@ -60,9 +47,7 @@ def recognize(spec, choices_values, timeout):
         extras.append(Choice(name, dict((c,c) for c in choices)))
 
     Rule = type("Rule", (GrammarRule,),{"spec": spec, "extras": extras})
-    rule = Rule()
-
-    grammar.add_rule(rule)
+    grammar.add_rule(Rule())
     grammar.load()   
 
     future = time.time() + timeout
@@ -76,25 +61,20 @@ def recognize(spec, choices_values, timeout):
 
     grammar.unload()
 
-    print "RESULT:",RESULT
+    print "RESULT:", RESULT
 
     return RESULT
 
-logging.basicConfig(level=logging.INFO)
+if __name__ == "__main__":
+    engine = Sapi5InProcEngine()
+    engine.connect()
 
-ENGINE = Sapi5InProcEngine()
-ENGINE.connect()
+    server = Server(("localhost", 8000))
+    server.register_function(recognize, 'recognize')
 
-#recognize("Just call me <name>", {"name":["Michael","Cristopher","Matthew","Joshua","Daniel","David","Andrew","James","Justin","Joseph","Jessica","Ashley","Brittany","Amanda","Samantha","Sarah","Stephanie","Jennifer","Elizabeth","Lauren"]})
+    engine.speak('Speak recognition active!')
+    print "Speak recognition active! Serving at port 8000"
 
-# Start server thread
-t = Thread(target=serverThread)
-t.start()
-
-ENGINE.speak('Speak recognition active!')
-
-server = Server(("localhost", 8000))
-server.register_function(recognize, 'recognize')
-server.serve_forever()
+    server.serve_forever()
 
 
