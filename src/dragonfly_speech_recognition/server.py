@@ -30,6 +30,11 @@ logging.getLogger("compound.parse").setLevel(logging.INFO)
 
 #---------------------------------------------------------------------------
 
+RESULT = None
+ENGINE = None
+
+#---------------------------------------------------------------------------
+
 class GrammarRule(CompoundRule):    
     def _process_recognition(self, node, extras):
         RESULT = extras
