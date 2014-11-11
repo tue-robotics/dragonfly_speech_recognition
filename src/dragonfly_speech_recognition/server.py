@@ -49,7 +49,7 @@ def recognize(spec, choices_values):
     print RESULT
     RESULT = None
 
-    print "Recognizing: ", spec, extras
+    print "Recognizing: ", spec, choices_values
     print ENGINE
     print dir(ENGINE)
 
