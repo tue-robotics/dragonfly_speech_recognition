@@ -73,6 +73,9 @@ def recognize(spec, choices_values, timeout):
         time.sleep(.1)
 
     grammar.unload()
+
+    print "RESULT:",RESULT
+
     return RESULT
 
 def serverThread():
