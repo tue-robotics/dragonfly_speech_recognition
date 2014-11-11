@@ -30,9 +30,16 @@ logging.getLogger("compound.parse").setLevel(logging.INFO)
 
 #---------------------------------------------------------------------------
 
-class GrammarRule(CompoundRule):
-    spec = "(My name is|I am) <name>"
-    extras = [Choice("name",   {
+class GrammarRule(CompoundRule):    
+    def _process_recognition(self, node, extras):
+        print extras["name"]
+
+# RPC METHOD
+def recognize():
+    grammar = Grammar("grammar")
+    rule = GrammarRule()
+    rule.spec = "(My name is|I am) <name>"
+    rule.extras = [Choice("name",   {
                                     "Michael":"Michael",
                                     "Cristopher":"Cristopher",
                                     "Matthew":"Matthew",
@@ -56,18 +63,11 @@ class GrammarRule(CompoundRule):
                                 }
                      )
               ]
-    
-    def _process_recognition(self, node, extras):
-        print extras["name"]
-
-def loadGrammar():
-    grammar = Grammar("grammar")
-    grammar.add_rule(GrammarRule())
+    grammar.add_rule(rule)
     grammar.load()   
 
 def serverThread():
     server = Server(("localhost", 8000))
-    print "Listening on port 8000..."
     server.serve_forever()
 
 if __name__ == "__main__":
@@ -76,7 +76,7 @@ if __name__ == "__main__":
     engine = Sapi5InProcEngine()
     engine.connect()
 
-    loadGrammar()
+    recognize()
 
     # Start server thread
     t = Thread(target=serverThread)
@@ -87,3 +87,5 @@ if __name__ == "__main__":
     while 1:
         pythoncom.PumpWaitingMessages()
         time.sleep(.1)
+
+    t.stop()
