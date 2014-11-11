@@ -37,7 +37,7 @@ ENGINE = None
 
 class GrammarRule(CompoundRule):  
     spec = "I want a <name>" 
-    extras = [Choice("name"), {"coke":"coke","fanta":"fanta"}]
+    extras = [Choice("name", {"coke":"coke","fanta":"fanta"})]
     def _process_recognition(self, node, extras):
         global RESULT
 
