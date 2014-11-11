@@ -88,7 +88,8 @@ ENGINE.connect()
 #recognize("Just call me <name>", {"name":["Michael","Cristopher","Matthew","Joshua","Daniel","David","Andrew","James","Justin","Joseph","Jessica","Ashley","Brittany","Amanda","Samantha","Sarah","Stephanie","Jennifer","Elizabeth","Lauren"]})
 
 # Start server thread
-t = Thread(target=serverThread)
+t_stop = threading.Event()
+t = Thread(target=serverThread,  args=(1, t_stop))
 t.start()
 
 ENGINE.speak('Speak recognition active!')
@@ -98,4 +99,9 @@ try:
         #pythoncom.PumpWaitingMessages()
         time.sleep(.1)
 except KeyboardInterrupt:
-    t._stop()
+    t_stop.set()
+
+
+
+
+  
