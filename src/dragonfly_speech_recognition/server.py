@@ -5,6 +5,9 @@ import time
 import logging
 import pythoncom
 
+import xmlrpclib
+from SimpleXMLRPCServer import SimpleXMLRPCServer as Server
+
 def error(error):
     print "ERROR: %s"%error
     sys.exit()
@@ -67,7 +70,11 @@ if __name__ == "__main__":
 
     loadGrammar()
 
-    engine.speak('beginning loop!')
+    engine.speak('Speak recognition active!')
+
+    server = Server(("localhost", 8000))
+    print "Listening on port 8000..."
+    server.serve_forever()
 
     while 1:
         pythoncom.PumpWaitingMessages()
