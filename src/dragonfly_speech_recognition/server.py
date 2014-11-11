@@ -43,7 +43,7 @@ class GrammarRule(CompoundRule):
         print extras["name"]
 
 # RPC METHOD
-def recognize(spec, choices_values):
+def recognize(spec, choices_values, timeout):
     global RESULT
 
     print RESULT
@@ -64,6 +64,16 @@ def recognize(spec, choices_values):
 
     grammar.add_rule(rule)
     grammar.load()   
+
+    future = time.time() + timeout
+    while time.time() < future:
+        if RESULT is not None:
+            break
+
+        time.sleep(.1)
+
+    grammar.unload()
+    return RESULT
 
 def serverThread():
     server = Server(("localhost", 8000))
