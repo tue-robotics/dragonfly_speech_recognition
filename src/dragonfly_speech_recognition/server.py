@@ -30,12 +30,26 @@ logging.getLogger("compound.parse").setLevel(logging.INFO)
 
 #---------------------------------------------------------------------------
 
+# Globals
+engine = None
+result = None
+
+#---------------------------------------------------------------------------
+
 class GrammarRule(CompoundRule):    
     def _process_recognition(self, node, extras):
+        result = extras
         print extras["name"]
 
 # RPC METHOD
 def recognize(spec, extras):
+    print result
+    result = None
+
+    print "Recognizing: ", spec, extras
+    print engine
+    print dir(engine)
+
     grammar = Grammar("grammar")
     rule = GrammarRule()
     rule.spec = spec
@@ -47,6 +61,7 @@ def recognize(spec, extras):
 
 def serverThread():
     server = Server(("localhost", 8000))
+    server.register_function(recognize, 'recognize')
     server.serve_forever()
 
 if __name__ == "__main__":
@@ -55,7 +70,7 @@ if __name__ == "__main__":
     engine = Sapi5InProcEngine()
     engine.connect()
 
-    recognize("my name is <name>", {"name":["Michael","Cristopher","Matthew","Joshua","Daniel","David","Andrew","James","Justin","Joseph","Jessica","Ashley","Brittany","Amanda","Samantha","Sarah","Stephanie","Jennifer","Elizabeth","Lauren"]})
+    recognize("Just call me <name>", {"name":["Michael","Cristopher","Matthew","Joshua","Daniel","David","Andrew","James","Justin","Joseph","Jessica","Ashley","Brittany","Amanda","Samantha","Sarah","Stephanie","Jennifer","Elizabeth","Lauren"]})
 
     # Start server thread
     t = Thread(target=serverThread)
