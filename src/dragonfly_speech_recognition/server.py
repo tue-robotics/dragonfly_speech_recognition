@@ -35,17 +35,15 @@ ENGINE = None
 
 #---------------------------------------------------------------------------
 
-class GrammarRule(CompoundRule):  
-    spec = "test"
-    extras = []  
+class GrammarRule(CompoundRule):   
     def _process_recognition(self, node, extras):
         global RESULT
 
         RESULT = extras
-        print extras["name"]
+        print extras
 
 # RPC METHOD
-def recognize(spec, extras):
+def recognize(spec, choices_values):
     global RESULT
 
     print RESULT
@@ -56,11 +54,14 @@ def recognize(spec, extras):
     print dir(ENGINE)
 
     grammar = Grammar("grammar")
-    rule = GrammarRule()
-    rule.spec = spec
-    rule.extras = []
-    for name, choices in extras.iteritems():
-        rule.extras.append(Choice(name, dict((c,c) for c in choices)))
+
+    extras = []
+    for name, choices in choices_values.iteritems():
+        extras.append(Choice(name, dict((c,c) for c in choices)))
+
+    Rule = type("Rule", (GrammarRule,),{"spec": spec, "extras": extras})
+    rule = Rule()
+
     grammar.add_rule(rule)
     grammar.load()   
 
