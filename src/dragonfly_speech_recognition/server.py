@@ -37,11 +37,15 @@ ENGINE = None
 
 class GrammarRule(CompoundRule):    
     def _process_recognition(self, node, extras):
+        global RESULT
+        
         RESULT = extras
         print extras["name"]
 
 # RPC METHOD
 def recognize(spec, extras):
+    global RESULT
+
     print RESULT
     RESULT = None
 
