@@ -70,6 +70,8 @@ def recognize(spec, choices_values, timeout):
         if RESULT is not None:
             break
 
+        pythoncom.PumpWaitingMessages()
+
         time.sleep(.1)
 
     grammar.unload()
@@ -77,11 +79,6 @@ def recognize(spec, choices_values, timeout):
     print "RESULT:",RESULT
 
     return RESULT
-
-def serverThread():
-    server = Server(("localhost", 8000))
-    server.register_function(recognize, 'recognize')
-    server.serve_forever()
 
 logging.basicConfig(level=logging.INFO)
 
@@ -96,9 +93,8 @@ t.start()
 
 ENGINE.speak('Speak recognition active!')
 
-try:
-    while 1:
-        pythoncom.PumpWaitingMessages()
-        time.sleep(.1)
-except KeyboardInterrupt:
-    t._stop()
+server = Server(("localhost", 8000))
+server.register_function(recognize, 'recognize')
+server.serve_forever()
+
+
