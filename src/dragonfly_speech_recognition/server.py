@@ -35,34 +35,13 @@ class GrammarRule(CompoundRule):
         print extras["name"]
 
 # RPC METHOD
-def recognize():
+def recognize(spec, extras):
     grammar = Grammar("grammar")
     rule = GrammarRule()
-    rule.spec = "(My name is|I am) <name>"
-    rule.extras = [Choice("name",   {
-                                    "Michael":"Michael",
-                                    "Cristopher":"Cristopher",
-                                    "Matthew":"Matthew",
-                                    "Joshua":"Joshua",
-                                    "Daniel":"Daniel",
-                                    "David":"David",
-                                    "Andrew":"Andrew",
-                                    "James":"James",
-                                    "Justin":"Justin",
-                                    "Joseph":"Joseph",
-                                    "Jessica":"Jessica",
-                                    "Ashley":"Ashley",
-                                    "Brittany":"Brittany",
-                                    "Amanda":"Amanda",
-                                    "Samantha":"Samantha",
-                                    "Sarah":"Sarah",
-                                    "Stephanie":"Stephanie",
-                                    "Jennifer":"Jennifer",
-                                    "Elizabeth":"Elizabeth",
-                                    "Lauren":"Lauren",
-                                }
-                     )
-              ]
+    rule.spec = spec
+    rule.extras = []
+    for name, choices in extras.iteritems():
+        rule.extras.append(Choice(name, dict((c,c) for c in choices)))
     grammar.add_rule(rule)
     grammar.load()   
 
@@ -76,7 +55,7 @@ if __name__ == "__main__":
     engine = Sapi5InProcEngine()
     engine.connect()
 
-    recognize()
+    recognize("my name is <name>", {"name":["Michael","Cristopher","Matthew","Joshua","Daniel","David","Andrew","James","Justin","Joseph","Jessica","Ashley","Brittany","Amanda","Samantha","Sarah","Stephanie","Jennifer","Elizabeth","Lauren"]})
 
     # Start server thread
     t = Thread(target=serverThread)
