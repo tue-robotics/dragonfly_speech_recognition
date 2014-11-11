@@ -36,7 +36,7 @@ ENGINE = None
 #---------------------------------------------------------------------------
 
 class GrammarRule(CompoundRule):  
-    spec = ""
+    spec = "test"
     extras = []  
     def _process_recognition(self, node, extras):
         global RESULT
