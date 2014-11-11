@@ -6,7 +6,7 @@ import logging
 import pythoncom
 
 # XML RPC SERVER
-from threading import Thread
+from threading import Thread, Event
 import xmlrpclib
 from SimpleXMLRPCServer import SimpleXMLRPCServer as Server
 
@@ -88,7 +88,7 @@ ENGINE.connect()
 #recognize("Just call me <name>", {"name":["Michael","Cristopher","Matthew","Joshua","Daniel","David","Andrew","James","Justin","Joseph","Jessica","Ashley","Brittany","Amanda","Samantha","Sarah","Stephanie","Jennifer","Elizabeth","Lauren"]})
 
 # Start server thread
-t_stop = threading.Event()
+t_stop = Event()
 t = Thread(target=serverThread,  args=(1, t_stop))
 t.start()
 
