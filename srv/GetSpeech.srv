@@ -1,5 +1,6 @@
 string spec
 Choice[] choices
+float32 timeout
 ---
 string result
 Choice[] choices
