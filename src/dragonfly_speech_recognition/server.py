@@ -9,6 +9,7 @@ if os.name is not 'nt':
 import time
 import logging
 import pythoncom
+import winsound
 
 # XML RPC SERVER
 from threading import Thread
@@ -20,6 +21,7 @@ def error(error):
     sys.exit()
 
 dragonfly_path = "%s/../../deps/dragonfly"%os.path.dirname(os.path.realpath(__file__))
+data_path = "%s/../../data"%os.path.dirname(os.path.realpath(__file__))
 sys.path.append(dragonfly_path)
 
 try:
@@ -53,28 +55,33 @@ def recognize(spec, choices_values, timeout):
 
     Rule = type("Rule", (GrammarRule,),{"spec": spec, "extras": extras})
     grammar.add_rule(Rule())
-    grammar.load()   
+    grammar.load()
+
+    print "Grammar loaded"
+    winsound.PlaySound(data_path + "/grammar_loaded.wav", winsound.SND_ASYNC)
 
     future = time.time() + timeout
-    while time.time() < future:
-        if RESULT is not None:
-            break
-
+    while time.time() < future and RESULT is None:
         pythoncom.PumpWaitingMessages()
-
         time.sleep(.1)
 
     grammar.unload()
 
-    print "RESULT:", RESULT
+    result = None
+    if RESULT:
+        result = {}
+        result["result"] = " ".join(RESULT["_node"].words())
+        result["choices"] = {}
+        for choice in choices_values:
+            result["choices"][choice] = RESULT[choice]
 
-    return RESULT
+    return result
 
 if __name__ == "__main__":
     engine = Sapi5InProcEngine()
     engine.connect()
 
-    server = Server(("localhost", 8000))
+    server = Server(("localhost", 8000), allow_none=True)
     server.register_function(recognize, 'recognize')
 
     engine.speak('Speak recognition active!')
