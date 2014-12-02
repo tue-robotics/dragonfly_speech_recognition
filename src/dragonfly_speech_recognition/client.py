@@ -1,11 +1,6 @@
 #!/usr/bin/env python
 
 import sys, os
-
-if os.name is not 'nt':
-    print "This module should run on a windows machine :)"
-    sys.exit()
-
 import time
 import logging
 import pythoncom
