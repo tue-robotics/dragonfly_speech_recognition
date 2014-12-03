@@ -45,6 +45,8 @@ class GrammarRule(CompoundRule):
 # RPC METHOD
 def recognize(spec, choices_values, timeout):
 
+    # Flush waiting messages
+    pythoncom.PumpWaitingMessages()
     global RESULT
     RESULT = None
 
