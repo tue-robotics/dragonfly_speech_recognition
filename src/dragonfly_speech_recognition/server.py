@@ -10,6 +10,7 @@ import time
 import logging
 import pythoncom
 import winsound
+import socket
 
 # XML RPC SERVER
 from threading import Thread
@@ -81,11 +82,14 @@ if __name__ == "__main__":
     engine = Sapi5InProcEngine()
     engine.connect()
 
-    server = Server(("localhost", 8000), allow_none=True)
+    address = socket.gethostbyname(socket.gethostname())
+    port = 8000
+
+    server = Server((address, port), allow_none=True)
     server.register_function(recognize, 'recognize')
 
     engine.speak('Speak recognition active!')
-    print "Speak recognition active! Serving at port 8000"
+    print "Speak recognition active at %s:%d"%(address,port)
 
     server.serve_forever()
 
