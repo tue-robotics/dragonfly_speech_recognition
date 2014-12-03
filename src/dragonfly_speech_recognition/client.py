@@ -1,80 +1,59 @@
 #!/usr/bin/env python
 
-import sys, os
-import time
-import logging
-import pythoncom
+import roslib; roslib.load_manifest('dragonfly_speech_recognition')
+import rospy
+import rosnode
 
-# XML RPC SERVER
-from threading import Thread
-import xmlrpclib
-from SimpleXMLRPCServer import SimpleXMLRPCServer as Server
+from dragonfly_speech_recognition.srv import GetSpeech
+from dragonfly_speech_recognition.msg import Choice
 
-def error(error):
-    print "ERROR: %s"%error
-    sys.exit()
+from xmlrpclib import ServerProxy
+from os import popen
 
-dragonfly_path = "%s/../../deps/dragonfly"%os.path.dirname(os.path.realpath(__file__))
-sys.path.append(dragonfly_path)
+def cyan(text):
+    return "\x1b[00;96m%s\x1b[0m"%text
 
-try:
-    from dragonfly.engines.backend_sapi5.engine import Sapi5InProcEngine
-    from dragonfly import (Grammar, CompoundRule, Dictation, Choice)
-except:
-    error("Failed to import dragonfly, path: %s"%dragonfly_path)
+class VirtualBox():
+    def __init__(self):
+        print "-- [%s]"%cyan("Restoring last VM state")
+        print popen('vboxmanage snapshot thespeechmachine restorecurrent').read()
+        print "-- [%s]"%cyan("Starting virtual machine")
+        print popen('vboxmanage startvm thespeechmachine --type headless').read()
 
-#---------------------------------------------------------------------------
+    def __del__(self):
+        print "-- [%s]"%cyan("Powering off virtual machine")
+        print popen('vboxmanage controlvm thespeechmachine poweroff').read()
 
-RESULT = None
+class GetSpeechClient():
 
-#---------------------------------------------------------------------------
+    def __init__(self, speech_server_ip):
+        self.srv = rospy.Service('~get_speech', GetSpeech, self.srv_callback)
+        self.sp  = ServerProxy(speech_server_ip)
 
-class GrammarRule(CompoundRule):   
-    def _process_recognition(self, node, extras):
-        global RESULT
-        RESULT = extras
+    def srv_callback(self, req):
+        spec = req.spec
+        choices = dict((x.id, x.values) for x in req.choices)
+        time_out = req.time_out.to_sec()
 
-# RPC METHOD
-def recognize(spec, choices_values, timeout):
+        rospy.loginfo("Speech specification: [%s]"%cyan(spec))
 
-    global RESULT
-    RESULT = None
+        # RPC request to vbox
+        result = self.sp.recognize(spec, choices, time_out)
+        if result:
+            result["choices"] = [ Choice(id=k, values=[v]) for k, v in result["choices"].iteritems() ]
+            rospy.loginfo("Speech result: [%s]"%cyan(result["result"]))
+        else:
+            rospy.loginfo("Speech result: [%s]"%cyan("None"))
 
-    grammar = Grammar("grammar")
+        return result
 
-    extras = []
-    for name, choices in choices_values.iteritems():
-        extras.append(Choice(name, dict((c,c) for c in choices)))
-
-    Rule = type("Rule", (GrammarRule,),{"spec": spec, "extras": extras})
-    grammar.add_rule(Rule())
-    grammar.load()   
-
-    future = time.time() + timeout
-    while time.time() < future:
-        if RESULT is not None:
-            break
-
-        pythoncom.PumpWaitingMessages()
-
-        time.sleep(.1)
-
-    grammar.unload()
-
-    print "RESULT:", RESULT
-
-    return RESULT
-
-if __name__ == "__main__":
-    engine = Sapi5InProcEngine()
-    engine.connect()
-
-    server = Server(("localhost", 8000))
-    server.register_function(recognize, 'recognize')
-
-    engine.speak('Speak recognition active!')
-    print "Speak recognition active! Serving at port 8000"
-
-    server.serve_forever()
-
-
+# Main function
+if __name__ == '__main__':
+    try:
+        rospy.init_node('get_speech_client')
+        client = GetSpeechClient("http://10.10.10.2:8000")
+        vb = VirtualBox()
+        rospy.loginfo("GetSpeech client initialized")
+        rospy.spin()
+    except rospy.ROSInterruptException: 
+        pass
