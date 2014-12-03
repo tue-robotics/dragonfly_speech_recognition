@@ -46,7 +46,6 @@ class GrammarRule(CompoundRule):
 def recognize(spec, choices_values, timeout):
 
     global RESULT
-    RESULT = None
 
     grammar = Grammar("grammar")
 
@@ -60,6 +59,7 @@ def recognize(spec, choices_values, timeout):
 
     print "Grammar loaded"
     winsound.PlaySound(data_path + "/grammar_loaded.wav", winsound.SND_ASYNC)
+    RESULT = None
 
     future = time.time() + timeout
     while time.time() < future and RESULT is None:
