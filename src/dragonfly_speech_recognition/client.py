@@ -14,11 +14,24 @@ def cyan(text):
     return "\x1b[00;96m%s\x1b[0m"%text
 
 class VirtualBox():
-    def __init__(self):
-        print "-- [%s]"%cyan("Restoring last VM state")
-        print popen('vboxmanage snapshot thespeechmachine restorecurrent').read()
+
+    def __init__(self, ip):
+        self._ip = ip
+
+    def start(self):
+        codes = []
+
+        print "-- [%s]"%cyan("Restoring VM state '%s'"%self._ip)
+        pipe = popen('vboxmanage snapshot thespeechmachine restore %s'%self._ip)
+        print pipe.read()
+        codes.append(pipe.close())
+
         print "-- [%s]"%cyan("Starting virtual machine")
-        print popen('vboxmanage startvm thespeechmachine --type headless').read()
+        pipe = popen('vboxmanage startvm thespeechmachine --type headless')
+        print pipe.read()
+        codes.append(pipe.close())
+
+        return not any(codes)
 
     def __del__(self):
         print "-- [%s]"%cyan("Powering off virtual machine")
@@ -28,7 +41,7 @@ class GetSpeechClient():
 
     def __init__(self, speech_server_ip):
         self.srv = rospy.Service('~get_speech', GetSpeech, self.srv_callback)
-        self.sp  = ServerProxy(speech_server_ip)
+        self.sp  = ServerProxy("http://%s:8000"%speech_server_ip)
 
     def srv_callback(self, req):
         spec = req.spec
@@ -51,9 +64,14 @@ class GetSpeechClient():
 if __name__ == '__main__':
     try:
         rospy.init_node('get_speech_client')
-        client = GetSpeechClient("http://10.10.10.2:8000")
-        vb = VirtualBox()
-        rospy.loginfo("GetSpeech client initialized")
-        rospy.spin()
+        if rospy.has_param('~ip'):
+            ip = rospy.get_param('~ip')
+            client = GetSpeechClient(ip)
+            vb = VirtualBox(ip)
+            if vb.start():
+                rospy.loginfo("GetSpeech client initialized [vbox-server on %s -- booting]"%ip)
+                rospy.spin()
+        else:
+            rospy.logerr("GetSpeech client: no virtual box ip set; please specify the local 'ip' parameter")
     except rospy.ROSInterruptException: 
         pass
