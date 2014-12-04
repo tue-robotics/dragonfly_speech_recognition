@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+
+<launch>
+
+    <node name="speech_client" ns="amigo" pkg="dragonfly_speech_recognition" type="client.py" output="screen">
+        <param name="ip" value="192.168.2.99" />
+    </node>
+
+</launch>
