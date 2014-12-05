@@ -15,14 +15,14 @@ def cyan(text):
 
 class VirtualBox():
 
-    def __init__(self, ip):
-        self._ip = ip
+    def __init__(self):
+        pass
 
     def start(self):
         codes = []
 
-        print "-- [%s]"%cyan("Restoring VM state '%s'"%self._ip)
-        pipe = popen('vboxmanage snapshot thespeechmachine restore %s'%self._ip)
+        print "-- [%s]"%cyan("Restoring current VM state")
+        pipe = popen('vboxmanage snapshot thespeechmachine restorecurrent')
         print pipe.read()
         codes.append(pipe.close())
 
@@ -67,7 +67,7 @@ if __name__ == '__main__':
         if rospy.has_param('~ip'):
             ip = rospy.get_param('~ip')
             client = GetSpeechClient(ip)
-            vb = VirtualBox(ip)
+            vb = VirtualBox()
             if vb.start():
                 rospy.loginfo("GetSpeech client initialized [vbox-server on %s -- booting]"%ip)
                 rospy.spin()
