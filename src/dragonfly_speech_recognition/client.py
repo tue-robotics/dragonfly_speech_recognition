@@ -21,14 +21,14 @@ class VirtualBox():
     def start(self):
         codes = []
 
-        print "-- [%s]"%cyan("Restoring current VM state")
+        rospy.loginfo("-- [%s]"%cyan("Restoring current VM state"))
         pipe = popen('vboxmanage snapshot thespeechmachine restorecurrent')
-        print pipe.read()
+        rospy.loginfo(pipe.read())
         codes.append(pipe.close())
 
-        print "-- [%s]"%cyan("Starting virtual machine")
+        rospy.loginfo("-- [%s]"%cyan("Starting virtual machine"))
         pipe = popen('vboxmanage startvm thespeechmachine --type headless')
-        print pipe.read()
+        rospy.loginfo(pipe.read())
         codes.append(pipe.close())
 
         return not any(codes)
