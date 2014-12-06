@@ -28,11 +28,14 @@ Assuming a ROS environment has already been setup, clone the package in your wor
     
 ## Quick Start
 
-On your windows machine (server);
+On your windows machine (server):
+
     python server.py
 
 On your linux machine (client) - Make sure you set the server ip correctly in your launch file:
+
     roslaunch dragonfly_speech_recognition example.launch
 
 Now you can call the service:
+
     rosservice call /speech_client/get_speech [EXAMPLE SERVICE MESSAGE]
