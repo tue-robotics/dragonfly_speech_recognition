@@ -39,3 +39,10 @@ On your linux machine (client) - Make sure you set the server ip correctly in yo
 Now you can call the service:
 
     rosservice call /speech_client/get_speech [EXAMPLE SERVICE MESSAGE]
+    
+## Troubleshooting audio virtualbox
+
+- Set audio device to pulseaudio if we are sharing the audio with multiple resources, otherwise use alsa
+- Make sure the user is in the audio, pulse audio and pulse user group
+- Do not ssh with -X when using pulseaudio, this tries to tunnel audio which is not what we want
+
