@@ -2,40 +2,14 @@
 
 import roslib; roslib.load_manifest('dragonfly_speech_recognition')
 import rospy
-import rosnode
 
 from dragonfly_speech_recognition.srv import GetSpeech
 from dragonfly_speech_recognition.msg import Choice
 
 from xmlrpclib import ServerProxy
-from os import popen
 
 def cyan(text):
     return "\x1b[00;96m%s\x1b[0m"%text
-
-class VirtualBox():
-
-    def __init__(self):
-        pass
-
-    def start(self):
-        codes = []
-
-        rospy.loginfo("-- [%s]"%cyan("Restoring current VM state"))
-        pipe = popen('vboxmanage snapshot thespeechmachine restorecurrent')
-        rospy.loginfo(pipe.read())
-        codes.append(pipe.close())
-
-        rospy.loginfo("-- [%s]"%cyan("Starting virtual machine"))
-        pipe = popen('vboxmanage startvm thespeechmachine --type headless')
-        rospy.loginfo(pipe.read())
-        codes.append(pipe.close())
-
-        return not any(codes)
-
-    def __del__(self):
-        print "-- [%s]"%cyan("Powering off virtual machine")
-        print popen('vboxmanage controlvm thespeechmachine poweroff').read()
 
 class GetSpeechClient():
 
@@ -50,7 +24,7 @@ class GetSpeechClient():
 
         rospy.loginfo("Speech specification: [%s]"%cyan(spec))
 
-        # RPC request to vbox
+        # RPC request to server
         result = self.sp.recognize(spec, choices, time_out)
         if result:
             result["choices"] = [ Choice(id=k, values=[v]) for k, v in result["choices"].iteritems() ]
@@ -67,11 +41,9 @@ if __name__ == '__main__':
         if rospy.has_param('~ip'):
             ip = rospy.get_param('~ip')
             client = GetSpeechClient(ip)
-            vb = VirtualBox()
-            if vb.start():
-                rospy.loginfo("GetSpeech client initialized [vbox-server on %s -- booting]"%ip)
-                rospy.spin()
+            rospy.loginfo("GetSpeech client initialized [connecting to server on ip %s]"%ip)
+            rospy.spin()
         else:
-            rospy.logerr("GetSpeech client: no virtual box ip set; please specify the local 'ip' parameter")
+            rospy.logerr("GetSpeech client: no server ip set; please specify the local 'ip' parameter")
     except rospy.ROSInterruptException: 
         pass
