@@ -76,7 +76,8 @@ def recognize(spec, choices_values, timeout):
         result["result"] = " ".join(RESULT["_node"].words())
         result["choices"] = {}
         for choice in choices_values:
-            result["choices"][choice] = RESULT[choice]
+            if choice in RESULT:
+                result["choices"][choice] = RESULT[choice]
 
     return result
 
