@@ -31,6 +31,8 @@ class GetSpeechClient():
             rospy.loginfo("Speech result: [%s]"%cyan(result["result"]))
         else:
             rospy.loginfo("Speech result: [%s]"%cyan("None"))
+            result["result"] = ""
+            result["choices"] = []
 
         return result
 
