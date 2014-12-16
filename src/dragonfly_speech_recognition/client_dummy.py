@@ -21,18 +21,31 @@ class GetSpeechDummyClient():
         result = {}
 
         # Copy request
-        result["choices"] = req.choices
         result["result"] = req.spec
+        result["choices"] = []
 
-        # Choose random choice :)
-        [ random.shuffle(c.values) for c in req.choices ]
+        # Pick random group if available
+        options = re.findall('\([^\)]+\)', result["result"])
+        for option in options:
+            result["result"] = result["result"].replace(option,random.choice(option[1:-1].split("|")))
+
+        # Fetch all the residual choices
+        choices = re.findall("<([^<>]+)>", result["result"])
         
         # Parse the choices in the ending result :)
-        for c in result["choices"]:
-            result["result"] = result["result"].replace("<%s>"%c.id, c.values[0]) 
+        for c in choices:
+            for req_c in req.choices:
+                if req_c.id == c:
+                    value = random.choice(req_c.values)
 
-        # Check if we have no more choices in result, otherwise exception is thrown
-        if re.match(".*<[^<>]+>.*", result["result"]):
+                    result["result"] = result["result"].replace("<%s>"%c, value) 
+                    result["choices"].append(Choice(id=c, values=[value])) 
+
+        # Remove the optional brackets []
+        result["result"] = result["result"].replace("[","").replace("]","")
+
+        # Check if result is clean
+        if re.match(".*[<>\(\)\[\]]+.*", result["result"]):
             rospy.logerr("Not all choices could be resolved in the specification, residual result: '%s'"%result["result"])
             return False
 
