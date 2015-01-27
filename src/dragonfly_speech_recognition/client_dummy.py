@@ -21,13 +21,14 @@ class GetSpeechDummyClient():
         result = {}
 
         # Copy request
-        result["result"] = req.spec
+        result["result"] = "(%s)" % req.spec
         result["choices"] = []
 
         # Pick random group if available
-        options = re.findall('\([^\)]+\)', result["result"])
-        for option in options:
-            result["result"] = result["result"].replace(option,random.choice(option[1:-1].split("|")))
+        while re.search('\([^\)]+\)', result["result"]):
+            options = re.findall('\([^\(\)]+\)', result["result"])
+            for option in options:
+                result["result"] = result["result"].replace(option,random.choice(option[1:-1].split("|")), 1)
 
         # Fetch all the residual choices
         choices = re.findall("<([^<>]+)>", result["result"])
