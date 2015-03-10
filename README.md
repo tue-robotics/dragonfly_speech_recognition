@@ -45,4 +45,5 @@ Now you can call the service:
 - Set audio device to pulseaudio if we are sharing the audio with multiple resources, otherwise use alsa
 - Make sure the user is in the audio, pulse audio and pulse user group
 - Do not ssh with -X when using pulseaudio, this tries to tunnel audio which is not what we want
+- Use Teamviewer to debug the audio capturing device! amigo: 192.168.2.99, sergio: 192.168.2.79
 
