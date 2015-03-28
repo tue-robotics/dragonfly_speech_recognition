@@ -40,6 +40,9 @@ Now you can call the service:
 
     rosservice call /speech_client/get_speech [EXAMPLE SERVICE MESSAGE]
     
+## Registering virtualbox
+- vboxmanage registervm [FULL_PATH_TO_.vbox]
+    
 ## Troubleshooting audio virtualbox
 
 - Set audio device to pulseaudio if we are sharing the audio with multiple resources, otherwise use alsa
