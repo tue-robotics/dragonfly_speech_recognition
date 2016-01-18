@@ -10,7 +10,7 @@ Server (src/dragonfly_speech_recognition/server.py) has to run on a (virtual) wi
 ### Prerequisites
 
 - Windows speech recognition engine (Windows Vista+)
-- PyWin32
+- PyWin32 (`pip install pypiwin32` or use the installer)
 
 ### Installation
 
@@ -18,14 +18,14 @@ Server (src/dragonfly_speech_recognition/server.py) has to run on a (virtual) wi
     cd dragonfly_speech_recognition
     git submodule init
     git submodule update (will download dragonfly)
-  
+
 ## Client installation
 
 Assuming a ROS environment has already been setup, clone the package in your workspace
 
     git clone https://github.com/tue-robotics/dragonfly_speech_recognition.git
     catkin_make
-    
+
 ## Quick Start
 
 On your windows machine (server):
@@ -39,10 +39,10 @@ On your linux machine (client) - Make sure you set the server ip correctly in yo
 Now you can call the service:
 
     rosservice call /speech_client/get_speech [EXAMPLE SERVICE MESSAGE]
-    
+
 ## Registering virtualbox
 - vboxmanage registervm [FULL_PATH_TO_.vbox]
-    
+
 ## Troubleshooting audio virtualbox
 
 - Set audio device to pulseaudio if we are sharing the audio with multiple resources, otherwise use alsa
