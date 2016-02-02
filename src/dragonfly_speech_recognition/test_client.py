@@ -3,6 +3,7 @@
 from xmlrpclib import ServerProxy, Error, Fault
 import sys
 import logging
+from argparse import ArgumentParser
 
 logging.basicConfig()
 logging.getLogger().setLevel(logging.DEBUG)
@@ -18,7 +19,7 @@ class GetSpeechClient():
         logger.info('speech request: "%s"', spec)
         try:
             # return self.sp.recognize(spec, {}, 10)
-            return self.sp.recognize('my name is <name>', {'name': ['Ramon', 'Paul']}, 10)
+            return self.sp.recognize(spec, {}, 10)
         except Fault as error:
             logger.exception('RPC Fault (%d): %s', error.faultCode, error.faultString)
             sys.exit(1)
@@ -26,6 +27,12 @@ class GetSpeechClient():
 
 # Main function
 if __name__ == '__main__':
+    parser = ArgumentParser(description="Client to send a spec to the speech server")
+    parser.add_argument('IP', help="Server's IP")
+    parser.add_argument('spec', help="Speech spec")
+    args = parser.parse_args()
+
+
     ip = sys.argv[1]
     spec = sys.argv[2]
     client = GetSpeechClient(ip)
