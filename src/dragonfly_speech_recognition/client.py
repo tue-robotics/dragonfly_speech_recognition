@@ -5,6 +5,7 @@ import rospy
 
 from dragonfly_speech_recognition.srv import GetSpeech
 from dragonfly_speech_recognition.msg import Choice
+from compiler.ast import flatten
 
 from xmlrpclib import ServerProxy
 
@@ -26,7 +27,10 @@ class GetSpeechClient():
 
         # RPC request to server
         result = self.sp.recognize(spec, choices, time_out)
+        rospy.loginfo(result)
         if result:
+            if isinstance(result["result"], list):
+                result["result"] = " ".join(flatten(result["result"]))
             result["choices"] = [ Choice(id=k, values=[v]) for k, v in result["choices"].iteritems() ]
             rospy.loginfo("Speech result: [%s]"%cyan(result["result"]))
         else:
