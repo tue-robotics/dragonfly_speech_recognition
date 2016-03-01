@@ -3,7 +3,7 @@
 import roslib; roslib.load_manifest('dragonfly_speech_recognition')
 import rospy
 
-from os import popen
+import subprocess
 import sys
 
 def cyan(text):
@@ -18,20 +18,16 @@ class VirtualBox():
         codes = []
 
         rospy.loginfo("-- [%s]"%cyan("Restoring current VM state"))
-        pipe = popen('vboxmanage snapshot thespeechmachine restorecurrent')
-        rospy.loginfo(pipe.read())
-        codes.append(pipe.close())
+        codes.append(subprocess.call(['vboxmanage', 'snapshot', 'thespeechmachine', 'restorecurrent']))
 
         rospy.loginfo("-- [%s]"%cyan("Starting virtual machine"))
-        pipe = popen('vboxmanage startvm thespeechmachine --type headless')
-        rospy.loginfo(pipe.read())
-        codes.append(pipe.close())
+        codes.append(subprocess.call(['vboxmanage', 'startvm', 'thespeechmachine', '--type', 'headless']))
 
-        return not (None in codes or any(codes))
+        return not any(codes)
 
     def __del__(self):
         print "-- [%s]"%cyan("Powering off virtual machine")
-        print popen('vboxmanage controlvm thespeechmachine poweroff').read()
+        subprocess.call(['vboxmanage', 'controlvm', 'thespeechmachine', 'poweroff'])
 
 # Main function
 if __name__ == '__main__':
@@ -42,6 +38,7 @@ if __name__ == '__main__':
             rospy.loginfo("GetSpeech Server initialized [booting...]")
             rospy.spin()
         else:
+            rospy.logerr("Failed to start virtual machine, Please recompile the kernel module and install it by 'sudo /etc/init.d/vboxdrv setup'")
             sys.exit(1)
     except rospy.ROSInterruptException:
         pass
