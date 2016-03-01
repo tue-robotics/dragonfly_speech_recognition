@@ -4,6 +4,7 @@ import roslib; roslib.load_manifest('dragonfly_speech_recognition')
 import rospy
 
 from os import popen
+import sys
 
 def cyan(text):
     return "\x1b[00;96m%s\x1b[0m"%text
@@ -26,7 +27,7 @@ class VirtualBox():
         rospy.loginfo(pipe.read())
         codes.append(pipe.close())
 
-        return not any(codes)
+        return not (None in codes or any(codes))
 
     def __del__(self):
         print "-- [%s]"%cyan("Powering off virtual machine")
@@ -40,5 +41,7 @@ if __name__ == '__main__':
         if vb.start():
             rospy.loginfo("GetSpeech Server initialized [booting...]")
             rospy.spin()
-    except rospy.ROSInterruptException: 
+        else:
+            sys.exit(1)
+    except rospy.ROSInterruptException:
         pass
