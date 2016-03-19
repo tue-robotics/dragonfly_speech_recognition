@@ -5,6 +5,7 @@ import rospy
 
 import subprocess
 import sys
+import os
 
 def cyan(text):
     return "\x1b[00;96m%s\x1b[0m"%text
@@ -21,7 +22,7 @@ class VirtualBox():
         codes.append(subprocess.call(['vboxmanage', 'snapshot', 'thespeechmachine', 'restorecurrent']))
 
         rospy.loginfo("-- [%s]"%cyan("Starting virtual machine"))
-        codes.append(subprocess.call(['vboxmanage', 'startvm', 'thespeechmachine', '--type', 'headless']))
+        codes.append(os.system("vboxmanage startvm thespeechmachine --type headless 2>&1 | if grep -q error; then exit 1; else exit 0; fi"))
 
         return not any(codes)
 
