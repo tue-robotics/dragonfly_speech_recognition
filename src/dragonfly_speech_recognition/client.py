@@ -27,10 +27,11 @@ class GetSpeechClient():
 
         # RPC request to server
         result = self.sp.recognize(spec, choices, time_out)
-        rospy.loginfo(result)
+        rospy.loginfo("WSR result: %s", result)
         if result:
             if isinstance(result["result"], list):
-                result["result"] = " ".join(flatten(result["result"]))
+                flatten_result = [e for e in flatten(result["result"]) if isinstance(e, str)]
+                result["result"] = " ".join(flatten_result)
             result["choices"] = [ Choice(id=k, values=[v]) for k, v in result["choices"].iteritems() ]
             rospy.loginfo("Speech result: [%s]"%cyan(result["result"]))
         else:
@@ -38,6 +39,8 @@ class GetSpeechClient():
             result = {}
             result["result"] = ""
             result["choices"] = []
+
+        rospy.loginfo("Parsed result: %s", result)
 
         return result
 
@@ -52,5 +55,5 @@ if __name__ == '__main__':
             rospy.spin()
         else:
             rospy.logerr("GetSpeech client: no server ip set; please specify the local 'ip' parameter")
-    except rospy.ROSInterruptException: 
+    except rospy.ROSInterruptException:
         pass
