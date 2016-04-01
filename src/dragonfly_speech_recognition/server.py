@@ -35,6 +35,8 @@ except:
 '''Internal struct to store speech results'''
 Result = namedtuple('Result', ['node', 'extras'])
 
+
+
 def recognize(spec, choices_values, timeout):
     """
     RPC callback that will call dragonfly
@@ -83,8 +85,6 @@ def dragonfly_recognise(spec, choices_values, timeout):
     grammar.process_recognition_failure = process_recognition_failure
 
     grammar.load()
-    if len(spec) > 1000: # GPS HACK
-        engine.speak('Give your command after the ping')
     winsound.PlaySound(data_path + "/grammar_loaded.wav", winsound.SND_ASYNC)
 
     logger.info("Grammar loaded: %s", spec)
