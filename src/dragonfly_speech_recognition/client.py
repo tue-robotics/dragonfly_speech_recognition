@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 
+'''
+The real speech client that forwards ROS calls to RPC calls
+'''
+
 import roslib; roslib.load_manifest('dragonfly_speech_recognition')
 import rospy
 

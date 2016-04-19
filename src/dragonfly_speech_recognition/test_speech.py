@@ -1,3 +1,9 @@
+#!/usr/bin/env python
+
+'''
+Check if speech works on the Windows machine
+'''
+
 import sys
 from time import sleep
 import logging

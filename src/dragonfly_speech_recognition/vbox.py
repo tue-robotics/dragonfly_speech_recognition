@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 
+'''
+Tooling to start up the VirtualBox from ROS
+'''
+
 import roslib; roslib.load_manifest('dragonfly_speech_recognition')
 import rospy
 

@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 
+'''
+A mock client that just returns a random answer to the ROS world
+'''
+
 import roslib; roslib.load_manifest('dragonfly_speech_recognition')
 import rospy
 import rosnode

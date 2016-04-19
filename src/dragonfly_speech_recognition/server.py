@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 
+'''
+This runs on the Windows machine and receives RPC calls
+'''
+
 import sys
 import os
 import logging
