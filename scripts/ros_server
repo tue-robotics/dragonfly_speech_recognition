@@ -1,0 +1,66 @@
+#!/usr/bin/env python
+
+import rospy
+
+from hmi_server.abstract_client import AbstractHMIServer
+from hmi_msgs.msg import QueryAction, Choice
+from compiler.ast import flatten
+from multiprocessing.connection import Client
+from array import array
+from argparse import ArgumentParser
+from xmlrpclib import ServerProxy
+from time import sleep
+
+class RosServer(AbstractHMIServer):
+
+    def __init__(self, ros_name, ip):
+        self._ip = ip
+        super(RosServer, self).__init__(ros_name)
+
+    def _determine_answer(self, description, spec, choices):
+
+        address = (self._ip, 6000)
+        conn = Client(address)
+
+        conn.send(['set', description, spec, choices])
+
+        # sleep(1)
+        # conn.send(['cancel'])
+
+        while not conn.poll(.1):
+            print 'polling...'
+
+        print conn.recv()
+
+
+
+if __name__ == '__main__':
+
+    argv = rospy.myargv()
+
+    parser = ArgumentParser()
+    parser.add_argument('query', nargs="?", help='Test query')
+
+    args = parser.parse_args(argv[1:])
+    query = args.query
+
+    if query:
+        class TestServer(RosServer):
+            def __init__(self):
+                self._ip = 'localhost'
+        server = TestServer()
+        server._determine_answer('test', query, None)
+
+    else:
+
+        try:
+            rospy.init_node('ros_server')
+            if rospy.has_param('~ip'):
+                ip = rospy.get_param('~ip')
+                server = RosServer(rospy.get_name(), ip)
+                rospy.loginfo("GetSpeech client initialized [connecting to server on ip %s]", ip)
+                rospy.spin()
+            else:
+                rospy.logerr("GetSpeech client: no server ip set; please specify the local 'ip' parameter")
+        except rospy.ROSInterruptException:
+            pass

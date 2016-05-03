@@ -1,0 +1,32 @@
+#!/usr/bin/env python
+
+
+import rospy
+from hmi_msgs.msg import QueryAction, QueryResult, Result
+from actionlib import SimpleActionServer
+from hmi_server.abstract_client import AbstractHMIServer
+
+from multiprocessing.connection import Listener
+from array import array
+from time import sleep
+
+address = ('localhost', 6000)
+listener = Listener(address)
+
+while True:
+    conn = listener.accept()
+    print 'connection accepted from', listener.last_accepted
+
+    msg = conn.recv()
+    print msg
+
+    sleep(2)
+
+    if conn.poll():
+        print conn.recv()
+
+    conn.send('apple')
+    conn.close()
+
+
+listener.close()
