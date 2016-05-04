@@ -27,15 +27,26 @@ class RosServer(AbstractHMIServer):
         # sleep(1)
         # conn.send(['cancel'])
 
+        rospy.loginfo('waiting for result')
         while not conn.poll(.1):
-            print 'polling...'
+            # print 'polling...'
+            pass
 
-        print conn.recv()
+        # try:
+        msg = conn.recv()
+        # except EOFError as e:
+        # rospy.logerr('EOFError: %s', e)
+            # return None
+        rospy.loginfo('received result: %s', msg)
 
+        conn.close()
+
+        return msg
 
 
 if __name__ == '__main__':
 
+    rospy.init_node('ros_speech_bridge')
     argv = rospy.myargv()
 
     parser = ArgumentParser()
@@ -54,7 +65,6 @@ if __name__ == '__main__':
     else:
 
         try:
-            rospy.init_node('ros_server')
             if rospy.has_param('~ip'):
                 ip = rospy.get_param('~ip')
                 server = RosServer(rospy.get_name(), ip)

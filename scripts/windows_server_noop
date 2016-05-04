@@ -8,25 +8,54 @@ from hmi_server.abstract_client import AbstractHMIServer
 
 from multiprocessing.connection import Listener
 from array import array
-from time import sleep
-
-address = ('localhost', 6000)
-listener = Listener(address)
-
-while True:
-    conn = listener.accept()
-    print 'connection accepted from', listener.last_accepted
-
-    msg = conn.recv()
-    print msg
-
-    sleep(2)
-
-    if conn.poll():
-        print conn.recv()
-
-    conn.send('apple')
-    conn.close()
+import time
+import logging
 
 
-listener.close()
+logging.basicConfig()
+logging.getLogger().setLevel(logging.DEBUG)
+logger = logging.getLogger(__name__)
+
+
+class SpeechServer(object):
+    def __init__(self):
+        address = ('localhost', 6000)
+        self._listener = Listener(address)
+
+    def spin(self):
+        logger.info('started listening')
+        while True:
+            try:
+                conn = self._listener.accept()
+                self.process_connection(conn)
+            except KeyboardInterrupt:
+                logger.warn('keyboard interrupt')
+                break
+            except:
+                logger.exception('speech exception')
+
+            conn.close()
+
+
+    def process_connection(self, conn):
+        print 'connection accepted from', self._listener.last_accepted
+
+        msg = conn.recv()
+        print msg
+
+        timeout = 2
+        timeout_time = time.time() + timeout
+        logger.info('timeout at %d seconds', timeout)
+        while time.time() < timeout_time:
+            # is there a cancel message queued?
+            if conn.poll():
+                print conn.recv()
+
+            time.sleep(0.1)
+
+        logger.info('result:')
+        conn.send('apple')
+
+server = SpeechServer()
+server.spin()
+
