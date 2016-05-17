@@ -1,0 +1,61 @@
+#!/usr/bin/env python
+
+
+import rospy
+from hmi_msgs.msg import QueryAction, QueryResult, Result
+from actionlib import SimpleActionServer
+from hmi_server.abstract_server import AbstractHMIServer
+
+from multiprocessing.connection import Listener
+from array import array
+import time
+import logging
+
+
+logging.basicConfig()
+logging.getLogger().setLevel(logging.DEBUG)
+logger = logging.getLogger(__name__)
+
+
+class SpeechServer(object):
+    def __init__(self):
+        address = ('localhost', 6000)
+        self._listener = Listener(address)
+
+    def spin(self):
+        logger.info('started listening')
+        while True:
+            try:
+                conn = self._listener.accept()
+                self.process_connection(conn)
+            except KeyboardInterrupt:
+                logger.warn('keyboard interrupt')
+                break
+            except:
+                logger.exception('speech exception')
+
+            conn.close()
+
+
+    def process_connection(self, conn):
+        print 'connection accepted from', self._listener.last_accepted
+
+        msg = conn.recv()
+        print msg
+
+        timeout = 2
+        timeout_time = time.time() + timeout
+        logger.info('timeout at %d seconds', timeout)
+        while time.time() < timeout_time:
+            # is there a cancel message queued?
+            if conn.poll():
+                print conn.recv()
+
+            time.sleep(0.1)
+
+        logger.info('result:')
+        conn.send('apple')
+
+server = SpeechServer()
+server.spin()
+
