@@ -58,6 +58,7 @@ class DragonflyWrapper(object):
 
         self._results = Queue()
 
+        self._rule = None
         self._grammar = Grammar("grammar")
 
         # attach failure callback
@@ -67,11 +68,18 @@ class DragonflyWrapper(object):
         self._grammar.process_recognition_failure = process_recognition_failure
 
     def set_grammar(self, spec, choices_values):
+        logger.info('Set Grammar: %s %s', spec, choices_values)
+
         # TODO: cache the rule
         assert self._results.empty()
 
-        rule = self._make_rule(spec, choices_values, self._result_callback)
-        self._grammar.add_rule(rule)
+        if self._rule:
+            # remove the old rule
+            self._grammar.unload()
+            self._grammar.remove_rule(self._rule)
+
+        self._rule = self._make_rule(spec, choices_values, self._result_callback)
+        self._grammar.add_rule(self._rule)
 
         self._grammar.load()
         winsound.PlaySound(data_path + "/grammar_loaded.wav", winsound.SND_ASYNC)
@@ -112,27 +120,27 @@ if __name__ == "__main__":
     logging.getLogger().setLevel(logging.INFO)
 
     dragon = DragonflyWrapper()
-    dragon.set_grammar('my name is <name>', {
-        'name': ['apple', 'jake']
-    })
-
-    future = time.time() + 10
-    while time.time() < future and dragon.results.empty():
-        time.sleep(.1)
-        dragon.spin_once()
-
-    try:
-        result = dragon.results.get_nowait()
-    except Empty:
-        sys.exit('no result')
-
-    if not dragon.results.empty():
-        raise Exception('Multiple results received')
-
-    # filter all extras with _ because they are private
-    result = {
-        "result": result.node.value(),
-        "choices": {k: v for (k, v) in result.extras.items() if not k.startswith('_')}
-    }
-
-    print result
+    # dragon.set_grammar('my name is <name>', {
+    #     'name': ['apple', 'jake']
+    # })
+    #
+    # future = time.time() + 10
+    # while time.time() < future and dragon.results.empty():
+    #     time.sleep(.1)
+    #     dragon.spin_once()
+    #
+    # try:
+    #     result = dragon.results.get_nowait()
+    # except Empty:
+    #     sys.exit('no result')
+    #
+    # if not dragon.results.empty():
+    #     raise Exception('Multiple results received')
+    #
+    # # filter all extras with _ because they are private
+    # result = {
+    #     "result": result.node.value(),
+    #     "choices": {k: v for (k, v) in result.extras.items() if not k.startswith('_')}
+    # }
+    #
+    # print result
