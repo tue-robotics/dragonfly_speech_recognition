@@ -58,6 +58,7 @@ class DragonflyWrapper(object):
 
         self._results = Queue()
 
+        self._rule = None
         self._grammar = Grammar("grammar")
 
         # attach failure callback
@@ -70,8 +71,13 @@ class DragonflyWrapper(object):
         # TODO: cache the rule
         assert self._results.empty()
 
-        rule = self._make_rule(spec, choices_values, self._result_callback)
-        self._grammar.add_rule(rule)
+        if self._rule:
+            # remove the old rule
+            self._grammar.unload()
+            self._grammar.remove_rule(self._rule)
+
+        self._rule = self._make_rule(spec, choices_values, self._result_callback)
+        self._grammar.add_rule(self._rule)
 
         self._grammar.load()
         winsound.PlaySound(data_path + "/grammar_loaded.wav", winsound.SND_ASYNC)
