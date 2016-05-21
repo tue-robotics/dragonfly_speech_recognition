@@ -47,7 +47,7 @@ class SpeechServer(object):
 
 
     def process_connection(self, conn):
-        print 'connection accepted from', self._listener.last_accepted
+        logger.info('connection accepted from %s', self._listener.last_accepted)
 
         msg = conn.recv()
         assert msg[0] == 'set'
@@ -76,13 +76,12 @@ class SpeechServer(object):
             raise Exception('Multiple results received')
 
         # filter all extras with _ because they are private
-        result = {
-            "result": result.node.value(),
-            "choices": {k: v for (k, v) in result.extras.items() if not k.startswith('_')}
-        }
+        choices = {k: v for (k, v) in result.extras.items() if not k.startswith('_')}
+        raw_result = result.node.value()
 
-        logger.info('result: %s', result)
-        conn.send(result)
+
+        logger.info('result: %s %s', raw_result, choices)
+        conn.send([raw_result, choices])
         conn.close()
 
 
