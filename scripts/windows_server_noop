@@ -1,19 +1,35 @@
 #!/usr/bin/env python
+from Queue import Empty
 
 from multiprocessing.connection import Listener
 import time
+import os
+import sys
 import logging
 
 
-logging.basicConfig()
+# import dragon wrapper
+current_dir = os.path.dirname(os.path.realpath(__file__))
+mod_path = os.path.join(current_dir, '..', 'src')
+sys.path.append(mod_path)
+from dragonfly_speech_recognition.wrapper import DragonflyWrapper
+
+FORMAT = '%(asctime)s %(module)s  [%(levelname)s] %(message)s'
+logging.basicConfig(format=FORMAT)
 logging.getLogger().setLevel(logging.DEBUG)
 logger = logging.getLogger(__name__)
+
+# make dragonfly less verbose
+logging.getLogger('engine').setLevel(logging.INFO)
+logging.getLogger('grammar').setLevel(logging.INFO)
+logging.getLogger('compound.parse').setLevel(logging.INFO)
 
 
 class SpeechServer(object):
     def __init__(self):
         address = ("0.0.0.0", 8000)
         self._listener = Listener(address)
+        self._dragon = DragonflyWrapper()
 
     def spin(self):
         logger.info('windows server started listening on port %s', self._listener.address)
@@ -34,20 +50,40 @@ class SpeechServer(object):
         print 'connection accepted from', self._listener.last_accepted
 
         msg = conn.recv()
-        print msg
+        assert msg[0] == 'set'
+        description = msg[1]
+        spec = msg[2]
+        choices = msg[3]
+        self._dragon.set_grammar(spec, choices)
 
-        timeout = 2
-        timeout_time = time.time() + timeout
-        logger.info('timeout at %d seconds', timeout)
-        while time.time() < timeout_time:
-            # is there a cancel message queued?
+
+        while self._dragon.results.empty():
+            time.sleep(.1)
             if conn.poll():
-                print conn.recv()
+                try:
+                    print conn.recv()
+                except EOFError:
+                    # connection closed
+                    break
+            self._dragon.spin_once()
 
-            time.sleep(0.1)
+        try:
+            result = self._dragon.results.get_nowait()
+        except Empty:
+            sys.exit('no result')
 
-        logger.info('result:')
-        conn.send('apple')
+        if not self._dragon.results.empty():
+            raise Exception('Multiple results received')
+
+        # filter all extras with _ because they are private
+        result = {
+            "result": result.node.value(),
+            "choices": {k: v for (k, v) in result.extras.items() if not k.startswith('_')}
+        }
+
+        logger.info('result: %s', result)
+        conn.send(result)
+        conn.close()
 
 
 server = SpeechServer()
