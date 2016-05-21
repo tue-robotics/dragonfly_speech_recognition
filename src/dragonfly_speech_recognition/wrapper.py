@@ -118,27 +118,27 @@ if __name__ == "__main__":
     logging.getLogger().setLevel(logging.INFO)
 
     dragon = DragonflyWrapper()
-    dragon.set_grammar('my name is <name>', {
-        'name': ['apple', 'jake']
-    })
-
-    future = time.time() + 10
-    while time.time() < future and dragon.results.empty():
-        time.sleep(.1)
-        dragon.spin_once()
-
-    try:
-        result = dragon.results.get_nowait()
-    except Empty:
-        sys.exit('no result')
-
-    if not dragon.results.empty():
-        raise Exception('Multiple results received')
-
-    # filter all extras with _ because they are private
-    result = {
-        "result": result.node.value(),
-        "choices": {k: v for (k, v) in result.extras.items() if not k.startswith('_')}
-    }
-
-    print result
+    # dragon.set_grammar('my name is <name>', {
+    #     'name': ['apple', 'jake']
+    # })
+    #
+    # future = time.time() + 10
+    # while time.time() < future and dragon.results.empty():
+    #     time.sleep(.1)
+    #     dragon.spin_once()
+    #
+    # try:
+    #     result = dragon.results.get_nowait()
+    # except Empty:
+    #     sys.exit('no result')
+    #
+    # if not dragon.results.empty():
+    #     raise Exception('Multiple results received')
+    #
+    # # filter all extras with _ because they are private
+    # result = {
+    #     "result": result.node.value(),
+    #     "choices": {k: v for (k, v) in result.extras.items() if not k.startswith('_')}
+    # }
+    #
+    # print result
