@@ -20,29 +20,26 @@ class RosServer(AbstractHMIServer):
 
     def _determine_answer(self, description, spec, choices, is_preempt_requested):
 
-        address = (self._ip, 6000)
+        address = (self._ip, 8000)
+        rospy.loginfo('making a client')
         conn = Client(address)
 
+        rospy.loginfo('sending...')
         conn.send(['set', description, spec, choices])
-
-        # sleep(1)
-        # conn.send(['cancel'])
 
         rospy.loginfo('waiting for result')
         while not conn.poll(.1):
-            # print 'polling...'
-            pass
+            # rospy.loginfo('polling...')
+            if is_preempt_requested():
+                rospy.loginfo('preempt requested')
+                return None
 
-        # try:
         msg = conn.recv()
-        # except EOFError as e:
-        # rospy.logerr('EOFError: %s', e)
-            # return None
-        rospy.loginfo('received result: %s', msg)
 
+        rospy.loginfo('received result: %s', msg)
         conn.close()
 
-        return HMIResult(raw_result='apple')
+        return HMIResult(raw_result=msg[0], results=msg[1])
 
 
 if __name__ == '__main__':
