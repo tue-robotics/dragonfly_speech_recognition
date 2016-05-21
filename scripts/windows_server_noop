@@ -64,8 +64,12 @@ class SpeechServer(object):
                     print conn.recv()
                 except EOFError:
                     # connection closed
-                    break
+                    logger.info('connection closed')
+                    return
             self._dragon.spin_once()
+
+        # deactivate the rule
+        self._dragon._rule.deactivate()
 
         try:
             result = self._dragon.results.get_nowait()
@@ -73,6 +77,9 @@ class SpeechServer(object):
             sys.exit('no result')
 
         if not self._dragon.results.empty():
+            # clear all previous results
+            while not self._dragon.results.empty():
+                self._dragon.results.get()
             raise Exception('Multiple results received')
 
         # filter all extras with _ because they are private
