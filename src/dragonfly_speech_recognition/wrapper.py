@@ -68,6 +68,8 @@ class DragonflyWrapper(object):
         self._grammar.process_recognition_failure = process_recognition_failure
 
     def set_grammar(self, spec, choices_values):
+        logger.info('Set Grammar: %s %s', spec, choices_values)
+
         # TODO: cache the rule
         assert self._results.empty()
 
