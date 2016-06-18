@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 
+'''
+Easy make a speech RPC call to an ip
+'''
+
 from xmlrpclib import ServerProxy, Error, Fault
 import sys
 import logging
