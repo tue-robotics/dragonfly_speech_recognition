@@ -14,14 +14,15 @@ mod_path = os.path.join(current_dir, '..', 'src')
 sys.path.append(mod_path)
 from dragonfly_speech_recognition.wrapper import DragonflyWrapper
 
-FORMAT = '%(asctime)s %(module)s  [%(levelname)s] %(message)s'
+FORMAT = '%(asctime)s %(module)s [%(levelname)s] %(message)s'
 logging.basicConfig(format=FORMAT)
 logging.getLogger().setLevel(logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 # make dragonfly less verbose
-logging.getLogger('engine').setLevel(logging.INFO)
-logging.getLogger('grammar').setLevel(logging.INFO)
+logging.getLogger('engine.compiler').setLevel(logging.INFO)
+logging.getLogger('grammar.decode').setLevel(logging.INFO)
+logging.getLogger('grammar.begin').setLevel(logging.INFO)
 logging.getLogger('compound.parse').setLevel(logging.INFO)
 
 
