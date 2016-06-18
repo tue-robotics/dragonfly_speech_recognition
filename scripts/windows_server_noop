@@ -70,7 +70,7 @@ class SpeechServer(object):
             self._dragon.spin_once()
 
         # deactivate the rule
-        self._dragon._rule.deactivate()
+        self._dragon._grammar.disable()
 
         try:
             result = self._dragon.results.get_nowait()

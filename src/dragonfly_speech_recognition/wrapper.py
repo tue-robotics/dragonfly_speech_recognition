@@ -58,14 +58,10 @@ class DragonflyWrapper(object):
 
         self._results = Queue()
 
-        self._rule = None
-        self._grammar = Grammar("grammar")
+        self._grammar = None
 
-        # attach failure callback
-        def process_recognition_failure():
-            logger.info('Grammar:process_recognition_failure')
-
-        self._grammar.process_recognition_failure = process_recognition_failure
+    def process_recognition_failure(self):
+        logger.info('Grammar:process_recognition_failure')
 
     def set_grammar(self, spec, choices_values):
         logger.info('Set Grammar: %s %s', spec, choices_values)
@@ -73,13 +69,16 @@ class DragonflyWrapper(object):
         # TODO: cache the rule
         assert self._results.empty()
 
-        if self._rule:
+        if self._grammar:
             # remove the old rule
             self._grammar.unload()
-            self._grammar.remove_rule(self._rule)
 
-        self._rule = self._make_rule(spec, choices_values, self._result_callback)
-        self._grammar.add_rule(self._rule)
+        self._grammar = Grammar("G")
+        # attach failure callback
+        self._grammar.process_recognition_failure = self.process_recognition_failure
+
+        rule = self._make_rule(spec, choices_values, self._result_callback)
+        self._grammar.add_rule(rule)
 
         self._grammar.load()
         winsound.PlaySound(data_path + "/grammar_loaded.wav", winsound.SND_ASYNC)
