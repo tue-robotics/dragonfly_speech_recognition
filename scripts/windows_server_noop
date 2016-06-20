@@ -2,6 +2,7 @@
 from Queue import Empty
 
 from multiprocessing.connection import Listener
+from threading import Thread
 import time
 import os
 import sys
@@ -37,7 +38,9 @@ class SpeechServer(object):
         while True:
             try:
                 conn = self._listener.accept()
-                self.process_connection(conn)
+                t = Thread(target=self.process_connection, args=[conn])
+                t.start()
+                t.join()
             except KeyboardInterrupt:
                 logger.warn('keyboard interrupt')
                 break
