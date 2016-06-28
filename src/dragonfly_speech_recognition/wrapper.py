@@ -64,7 +64,9 @@ class DragonflyWrapper(object):
         logger.info('Grammar:process_recognition_failure')
 
     def set_grammar(self, spec, choices_values):
-        logger.info('Set Grammar: %s %s', spec, choices_values)
+        spec_truncated = (spec[:75] + '...') if len(spec) > 75 else spec
+
+        logger.info('Set Grammar: %s %s', spec_truncated, choices_values)
 
         # TODO: cache the rule
         assert self._results.empty()
@@ -83,7 +85,7 @@ class DragonflyWrapper(object):
         self._grammar.load()
         winsound.PlaySound(data_path + "/grammar_loaded.wav", winsound.SND_ASYNC)
 
-        logger.info("Grammar loaded: %s", spec)
+        logger.info("Grammar loaded")
 
     def spin_once(self):
         pythoncom.PumpWaitingMessages()
