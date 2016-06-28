@@ -92,8 +92,8 @@ class SpeechServer(object):
         raw_result = result.node.value()
 
         if isinstance(raw_result, list):
-            logger.info('Flatten list')
-            flatten_result = [e for e in flatten(raw_result) if isinstance(e, str)]
+            logger.info('Flatten list: %s', raw_result)
+            flatten_result = [e for e in flatten(raw_result) if isinstance(e, basestring)]
             raw_result = " ".join(flatten_result)
 
         logger.info('result: %s %s', raw_result, choices)
