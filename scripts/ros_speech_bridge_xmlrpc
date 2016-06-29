@@ -26,7 +26,9 @@ class RosServer(AbstractHMIServer):
 
     def __init__(self, ros_name, ip):
         super(RosServer, self).__init__(ros_name)
-        self._xmlrpc_proxy = ServerProxy("http://%s:8000" % ip)
+        self._xmlrpc_request_proxy = ServerProxy("http://%s:8000" % ip)
+        self._xmlrpc_cancel_proxy = ServerProxy("http://%s:8000" % ip)
+
         self._recognition_thread = None
 
     def _determine_answer(self, description, spec, choices, is_preempt_requested):
@@ -34,10 +36,11 @@ class RosServer(AbstractHMIServer):
         if self._recognition_thread and self._recognition_thread.is_alive():
             # If so, cancel recognition and join thread
             try:
-                self._xmlrpc_proxy.cancel()
-            except (CannotSendRequest):
-                rospy.logerr("Could not cancel speech recognition ... (CannotSendRequest)")
+                self._xmlrpc_cancel_proxy.cancel()
+            except CannotSendRequest:
+                rospy.logerr("Could not cancel recognize thread at start")
             self._recognition_thread.join()
+            rospy.loginfo('recognize thread closed at start')
 
         # Init result
         self._result = None
@@ -52,23 +55,23 @@ class RosServer(AbstractHMIServer):
             if is_preempt_requested():
                 rospy.loginfo('Cancelling speech recognition because of preempt')
                 try:
-                    self._xmlrpc_proxy.cancel()
-                except (CannotSendRequest):
-                    rospy.logerr("Could not cancel speech recognition ... (CannotSendRequest)")
+                    self._xmlrpc_cancel_proxy.cancel()
+                except CannotSendRequest:
+                    rospy.logerr("Could not cancel recognize thread at end")
+                self._recognition_thread.join()
+                rospy.loginfo('recognize thread closed at end')
 
         return self._result
 
     def _recognize(self, spec, choices):
         try:
-            result = self._xmlrpc_proxy.recognize(spec, choices, 10)
-        except (CannotSendRequest):
+            result = self._xmlrpc_request_proxy.recognize(spec, choices, 10)
+        except CannotSendRequest:
             rospy.logerr("Could not recognize (speech recognition) ... (CannotSendRequest)")
             result = None
 
         rospy.loginfo("WSR result: %s", result)
-
         result = _flatten_result(result)
-
         rospy.loginfo("Flattened result: %s", result)
 
         if result:
