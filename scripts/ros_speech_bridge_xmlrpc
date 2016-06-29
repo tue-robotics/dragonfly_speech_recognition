@@ -11,32 +11,68 @@ from argparse import ArgumentParser
 from xmlrpclib import ServerProxy
 from time import sleep
 from hmi_server.abstract_server import HMIResult
+from threading import Thread
+
+from httplib import CannotSendRequest
+
+def _flatten_result(result):
+    if result:
+        if isinstance(result["result"], list):
+            flatten_result = [e for e in flatten(result["result"]) if isinstance(e, basestring)]
+            result["result"] = " ".join(flatten_result)
+    return result
 
 class RosServer(AbstractHMIServer):
 
     def __init__(self, ros_name, ip):
         super(RosServer, self).__init__(ros_name)
-        self._xmlrpc_proxy  = ServerProxy("http://%s:8000" % ip)
+        self._xmlrpc_proxy = ServerProxy("http://%s:8000" % ip)
+        self._recognition_thread = None
 
     def _determine_answer(self, description, spec, choices, is_preempt_requested):
+        # Check if the recognition thread is alive
+        if self._recognition_thread and self._recognition_thread.is_alive():
+            # If so, cancel recognition and join thread
+            try:
+                self._xmlrpc_proxy.cancel()
+            except (CannotSendRequest):
+                rospy.logerr("Could not cancel speech recognition ... (CannotSendRequest)")
+            self._recognition_thread.join()
+
+        # Init result
+        self._result = None
 
         # RPC request to server -- For now just wait 10 seconds
-        result = self._xmlrpc_proxy.recognize(spec, choices, 10.0)
+        self._recognition_thread = Thread(target=self._recognize, args=[spec, choices])
+        self._recognition_thread.start()
+
+        rospy.loginfo('waiting for result')
+        while not rospy.is_shutdown() and self._recognition_thread.is_alive():
+            # rospy.loginfo('polling...')
+            if is_preempt_requested():
+                rospy.loginfo('Cancelling speech recognition because of preempt')
+                try:
+                    self._xmlrpc_proxy.cancel()
+                except (CannotSendRequest):
+                    rospy.logerr("Could not cancel speech recognition ... (CannotSendRequest)")
+
+        return self._result
+
+    def _recognize(self, spec, choices):
+        try:
+            result = self._xmlrpc_proxy.recognize(spec, choices, 10)
+        except (CannotSendRequest):
+            rospy.logerr("Could not recognize (speech recognition) ... (CannotSendRequest)")
+            result = None
 
         rospy.loginfo("WSR result: %s", result)
+
+        result = _flatten_result(result)
+
+        rospy.loginfo("Flattened result: %s", result)
+
         if result:
-            if isinstance(result["result"], list):
-                flatten_result = [e for e in flatten(result["result"]) if isinstance(e, str)]
-                result["result"] = " ".join(flatten_result)
-        else:
-            result = {}
-            result["result"] = ""
-            result["choices"] = {}
-
-        rospy.loginfo("Parsed result: %s", result)
-
-        return HMIResult(raw_result=result["result"], results=result["choices"])
-
+            self._result = HMIResult(raw_result=result["result"], results=result["choices"])
 
 if __name__ == '__main__':
 
