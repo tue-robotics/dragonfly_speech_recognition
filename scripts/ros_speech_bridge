@@ -34,7 +34,11 @@ class RosServer(AbstractHMIServer):
                 rospy.loginfo('preempt requested')
                 return None
 
-        msg = conn.recv()
+        try:
+            msg = conn.recv()
+        except EOFError:
+            # something
+            return None
 
         rospy.loginfo('received result: %s', msg)
         conn.close()
@@ -58,7 +62,7 @@ if __name__ == '__main__':
             def __init__(self):
                 self._ip = 'localhost'
         server = TestServer()
-        server._determine_answer('test', query, None)
+        server._determine_answer('test', query, None, lambda: False)
 
     else:
 
