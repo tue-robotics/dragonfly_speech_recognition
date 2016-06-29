@@ -9,33 +9,57 @@ logging.getLogger().setLevel(logging.INFO)
 logger = logging.getLogger(__name__)
 
 if os.name is not 'nt':
-    logger.error("This module should run on a windows machine :)")
-    sys.exit(1)
+    #logger.error("This module should run on a windows machine :)")
+
+    class Sapi5InProcEngine:
+
+        def connect(self):
+            pass
+
+        def speak(self, msg):
+            pass
+
+    class CompoundRule:
+
+        def __init__(self, spec, extras):
+            pass
+
+    class Grammar:
+        def __init__(self, str):
+            pass
+
+        def add_rule(self, rule):
+            pass
+
+        def load(self):
+            pass
+
+        def unload(self):
+            pass            
+
+else:
+    import pythoncom
+    import winsound
+
+    dragonfly_path = "%s/../../deps/dragonfly" % os.path.dirname(os.path.realpath(__file__))
+    data_path = "%s/../../data" % os.path.dirname(os.path.realpath(__file__))
+    sys.path.append(dragonfly_path)
+
+    try:
+        from dragonfly.engines.backend_sapi5.engine import Sapi5InProcEngine
+        from dragonfly import (Grammar, CompoundRule, Dictation, Choice)
+    except:
+        logger.error("Failed to import dragonfly, path: %s" % dragonfly_path)
+        sys.exit(-1)
 
 import time
-import pythoncom
-import winsound
 import socket
 from SimpleXMLRPCServer import SimpleXMLRPCServer as Server
 from Queue import Queue, Empty
 from collections import namedtuple
 
-dragonfly_path = "%s/../../deps/dragonfly" % os.path.dirname(os.path.realpath(__file__))
-data_path = "%s/../../data" % os.path.dirname(os.path.realpath(__file__))
-sys.path.append(dragonfly_path)
-
-try:
-    from dragonfly.engines.backend_sapi5.engine import Sapi5InProcEngine
-    from dragonfly import (Grammar, CompoundRule, Dictation, Choice)
-except:
-    logger.error("Failed to import dragonfly, path: %s" % dragonfly_path)
-    sys.exit(-1)
-
-
 '''Internal struct to store speech results'''
 Result = namedtuple('Result', ['node', 'extras'])
-
-
 
 def recognize(spec, choices_values, timeout):
     """
@@ -85,13 +109,16 @@ def dragonfly_recognise(spec, choices_values, timeout):
     grammar.process_recognition_failure = process_recognition_failure
 
     grammar.load()
-    winsound.PlaySound(data_path + "/grammar_loaded.wav", winsound.SND_ASYNC)
+
+    if os.name is 'nt':
+        winsound.PlaySound(data_path + "/grammar_loaded.wav", winsound.SND_ASYNC)
 
     logger.info("Grammar loaded: %s", spec)
 
     future = time.time() + timeout
     while time.time() < future and results.empty():
-        pythoncom.PumpWaitingMessages()
+        if os.name is 'nt':
+            pythoncom.PumpWaitingMessages()
         time.sleep(.1)
 
     grammar.unload()
