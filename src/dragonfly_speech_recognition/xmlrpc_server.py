@@ -134,7 +134,7 @@ class RecognitionProcess:
             self.running = False
             return False
 
-        if not results.empty():
+        if not self.results.empty():
             self.running = False
             raise Exception('Multiple results received')
 
