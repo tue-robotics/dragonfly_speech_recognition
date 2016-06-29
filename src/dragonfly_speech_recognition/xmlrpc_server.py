@@ -92,6 +92,7 @@ class RecognitionProcess:
 
 
         rule = GrammarRule(spec=spec, extras=extras)
+        rule.results = self.results
 
         self.grammar = Grammar("grammar")
         self.grammar.add_rule(rule)
