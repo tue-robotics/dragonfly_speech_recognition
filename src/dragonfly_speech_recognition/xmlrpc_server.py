@@ -94,7 +94,7 @@ class RecognitionProcess:
                 self.results.put_nowait(Result(node=node, extras=extras))
 
             def _process_begin(self):
-                logger.debug('Rule:__process_begin')
+                logger.info('Rule:__process_begin')
 
 
         rule = GrammarRule(spec=self.spec, extras=extras)
@@ -202,6 +202,7 @@ class SpeechServer(ThreadingMixIn, Server):
         if self.handling_request:
             self.flag_request_abort = True
             while self.handling_request:
+                print "waiting here..."
                 time.sleep(0.1)
 
         self.flag_request_abort = False
@@ -211,14 +212,27 @@ class SpeechServer(ThreadingMixIn, Server):
             if self.process:
                 self.process.stop()
             self.process = RecognitionProcess(spec, choices_values)
-            self.process.run_threaded()       
+            self.process.run_threaded()
 
-        while self.process.is_running() and not self.flag_request_abort:
-            print "Recognizing, process = {}".format(self.process)
-            result = self.process.get_result()
-            if result:
-                return result
-            time.sleep(0.1)
+        # Empty all results
+        while not self.process.results.empty():
+            try:
+                result = self.process.results.get_nowait()
+            except Empty:
+                pass
+
+        try:
+            while self.process.is_running() and not self.flag_request_abort:
+                # print "Recognizing, process = {}".format(self.process)
+                result = self.process.get_result()
+                if result:
+                    self.handling_request = False
+                    return result
+                time.sleep(0.1)
+        except Exception as e:
+            logger.exception('Exception:')
+            self.handling_request = False
+            raise e
 
         self.handling_request = False
 
