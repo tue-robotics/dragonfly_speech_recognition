@@ -60,7 +60,7 @@ class RosServer(AbstractHMIServer):
 
     def _recognize(self, spec, choices):
         try:
-            result = self._xmlrpc_proxy.recognize(spec, choices, 10)
+            result = self._xmlrpc_proxy.recognize(spec, choices, 60)
         except (CannotSendRequest):
             rospy.logerr("Could not recognize (speech recognition) ... (CannotSendRequest)")
             result = None
