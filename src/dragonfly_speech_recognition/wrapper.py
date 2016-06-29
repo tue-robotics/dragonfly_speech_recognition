@@ -64,7 +64,9 @@ class DragonflyWrapper(object):
         logger.info('Grammar:process_recognition_failure')
 
     def set_grammar(self, spec, choices_values):
-        logger.info('Set Grammar: %s %s', spec, choices_values)
+        spec_truncated = (spec[:75] + '...') if len(spec) > 75 else spec
+
+        logger.info('Set Grammar: %s %s', spec_truncated, choices_values)
 
         # TODO: cache the rule
         assert self._results.empty()
@@ -83,7 +85,7 @@ class DragonflyWrapper(object):
         self._grammar.load()
         winsound.PlaySound(data_path + "/grammar_loaded.wav", winsound.SND_ASYNC)
 
-        logger.info("Grammar loaded: %s", spec)
+        logger.info("Grammar loaded")
 
     def spin_once(self):
         pythoncom.PumpWaitingMessages()
@@ -119,27 +121,27 @@ if __name__ == "__main__":
     logging.getLogger().setLevel(logging.INFO)
 
     dragon = DragonflyWrapper()
-    # dragon.set_grammar('my name is <name>', {
-    #     'name': ['apple', 'jake']
-    # })
-    #
-    # future = time.time() + 10
-    # while time.time() < future and dragon.results.empty():
-    #     time.sleep(.1)
-    #     dragon.spin_once()
-    #
-    # try:
-    #     result = dragon.results.get_nowait()
-    # except Empty:
-    #     sys.exit('no result')
-    #
-    # if not dragon.results.empty():
-    #     raise Exception('Multiple results received')
-    #
-    # # filter all extras with _ because they are private
-    # result = {
-    #     "result": result.node.value(),
-    #     "choices": {k: v for (k, v) in result.extras.items() if not k.startswith('_')}
-    # }
-    #
-    # print result
+    dragon.set_grammar('my name is <name>', {
+        'name': ['apple', 'jake']
+    })
+
+    future = time.time() + 10
+    while time.time() < future and dragon.results.empty():
+        time.sleep(.1)
+        dragon.spin_once()
+
+    try:
+        result = dragon.results.get_nowait()
+    except Empty:
+        sys.exit('no result')
+
+    if not dragon.results.empty():
+        raise Exception('Multiple results received')
+
+    # filter all extras with _ because they are private
+    result = {
+        "result": result.node.value(),
+        "choices": {k: v for (k, v) in result.extras.items() if not k.startswith('_')}
+    }
+
+    print result

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 from Queue import Empty
+from compiler.ast import flatten
 
 from multiprocessing.connection import Listener
 from threading import Thread
@@ -90,6 +91,10 @@ class SpeechServer(object):
         choices = {k: v for (k, v) in result.extras.items() if not k.startswith('_')}
         raw_result = result.node.value()
 
+        if isinstance(raw_result, list):
+            logger.info('Flatten list: %s', raw_result)
+            flatten_result = [e for e in flatten(raw_result) if isinstance(e, basestring)]
+            raw_result = " ".join(flatten_result)
 
         logger.info('result: %s %s', raw_result, choices)
         conn.send([raw_result, choices])

@@ -11,8 +11,10 @@ import logging
 import os
 
 
-logging.basicConfig()
+FORMAT = '%(asctime)s %(module)s [%(levelname)s] %(message)s'
+logging.basicConfig(format=FORMAT)
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 def error(msg, *args, **kwargs):
@@ -52,7 +54,9 @@ class ExampleRule(CompoundRule):
 # Create a grammar which contains and loads the command rule.
 grammar = Grammar("example grammar")  # Create a grammar to contain the command    rule.
 grammar.add_rule(ExampleRule())  # Add the command rule to the grammar.
+logger.info("Loading Grammar")
 grammar.load()  # Load the grammar.
+logger.info("Grammar loaded")
 
 while True:
     pythoncom.PumpWaitingMessages()
