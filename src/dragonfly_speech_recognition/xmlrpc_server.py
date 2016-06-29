@@ -55,8 +55,12 @@ else:
 import time
 import socket
 from SimpleXMLRPCServer import SimpleXMLRPCServer as Server
+from SocketServer import ThreadingMixIn
+
 from Queue import Queue, Empty
 from collections import namedtuple
+
+global CANCEL_FLAG
 
 '''Internal struct to store speech results'''
 Result = namedtuple('Result', ['node', 'extras'])
@@ -76,6 +80,9 @@ def recognize(spec, choices_values, timeout):
     logger.info('Result: %s', repr(result))
     return result
 
+def cancel():
+    global CANCEL_FLAG
+    CANCEL_FLAG = True
 
 def dragonfly_recognise(spec, choices_values, timeout):
     """
@@ -115,10 +122,17 @@ def dragonfly_recognise(spec, choices_values, timeout):
 
     logger.info("Grammar loaded: %s", spec)
 
+    global CANCEL_FLAG
+    CANCEL_FLAG = False
+
     future = time.time() + timeout
     while time.time() < future and results.empty():
         if os.name is 'nt':
             pythoncom.PumpWaitingMessages()
+
+        if CANCEL_FLAG:
+            return {}
+
         time.sleep(.1)
 
     grammar.unload()
@@ -138,10 +152,8 @@ def dragonfly_recognise(spec, choices_values, timeout):
         "choices": {k: v for (k, v) in result.extras.items() if not k.startswith('_')}
     }
 
-
 def process_result():
     pass
-
 
 if __name__ == "__main__":
     engine = Sapi5InProcEngine()
@@ -150,12 +162,14 @@ if __name__ == "__main__":
     address = socket.gethostbyname(socket.gethostname())
     port = 8000
 
-    server = Server((address, port), allow_none=True)
+    class MyXMLRPCServer(ThreadingMixIn, Server):
+        pass
+
+    server = MyXMLRPCServer((address, port), allow_none=True)
     server.register_function(recognize, 'recognize')
+    server.register_function(cancel, 'cancel')
 
     engine.speak('Speak recognition active!')
     logger.info("Speak recognition active at %s:%d", address, port)
 
     server.serve_forever()
-
-
