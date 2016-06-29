@@ -28,6 +28,14 @@ class GetSpeechClient():
             logger.exception('RPC Fault (%d): %s', error.faultCode, error.faultString)
             sys.exit(1)
 
+    def cancel(self):
+        try:
+            # return self.sp.recognize(spec, {}, 10)
+            return self.sp.cancel()
+        except Fault as error:
+            logger.exception('RPC Fault (%d): %s', error.faultCode, error.faultString)
+            sys.exit(1)
+
 
 # Main function
 if __name__ == '__main__':
@@ -41,4 +49,7 @@ if __name__ == '__main__':
     spec = sys.argv[2]
     client = GetSpeechClient(ip)
 
-    print client.call(spec)
+    if spec == "cancel":
+        print client.cancel()
+    else:
+        print client.call(spec)
