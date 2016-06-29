@@ -3,6 +3,7 @@
 import sys
 import os
 import logging
+import threading
 
 logging.basicConfig()
 logging.getLogger().setLevel(logging.INFO)
@@ -60,9 +61,6 @@ from SocketServer import ThreadingMixIn
 from Queue import Queue, Empty
 from collections import namedtuple
 
-global RECOGNITION_PROCESS
-RECOGNITION_PROCESS = None
-
 '''Internal struct to store speech results'''
 Result = namedtuple('Result', ['node', 'extras'])
 
@@ -73,14 +71,22 @@ class RecognitionProcess:
     def __init__(self, spec, choices_values):
         self.spec = spec
         self.choices_values = choices_values
-        self.running = False
+        
+        self.thread = None
+        self.cancel_flag = False
+
+    def run_threaded(self):
+        self.results = Queue()        
+        self.thread = threading.Thread(target=self._run)
+        self.thread.start()
+
+    def _run(self):
+        self.cancel_flag = False
 
         # build the dragonfly request
         extras = []
-        for name, choices in choices_values.iteritems():
+        for name, choices in self.choices_values.iteritems():
             extras.append(Choice(name, dict((c, c) for c in choices)))
-
-        self.results = Queue()
 
         class GrammarRule(CompoundRule):
             def _process_recognition(self, node, extras):
@@ -91,7 +97,7 @@ class RecognitionProcess:
                 logger.debug('Rule:__process_begin')
 
 
-        rule = GrammarRule(spec=spec, extras=extras)
+        rule = GrammarRule(spec=self.spec, extras=extras)
         rule.results = self.results
 
         self.grammar = Grammar("grammar")
@@ -104,38 +110,39 @@ class RecognitionProcess:
 
         self.grammar.load()
 
-        logger.info("Grammar loaded: %s", spec)
+        logger.info("Grammar loaded: %s", self.spec)
 
-    def run(self, timeout):
-        self.running = True
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
         if os.name is 'nt':
             winsound.PlaySound(data_path + "/grammar_loaded.wav", winsound.SND_ASYNC)
 
-        self.cancel_flag = False
+        timeout = 3600
 
         future = time.time() + timeout
-        while time.time() < future and self.results.empty():
+
+        while time.time() < future:
             if os.name is 'nt':
                 pythoncom.PumpWaitingMessages()
 
             if self.cancel_flag:
-                self.running = False
-                return {}
+                return
 
             time.sleep(.1)
 
-        self.grammar.unload()
+
+    def get_result(self):
+
+        if self.results.empty():
+            return None
 
         try:
             result = self.results.get_nowait()
         except Empty:
             logger.info('No result, probably a timeout')
-            self.running = False
-            return False
+            return None
 
         if not self.results.empty():
-            self.running = False
             raise Exception('Multiple results received')
 
         # filter all extras with _ because they are private
@@ -144,60 +151,79 @@ class RecognitionProcess:
             "choices": {k: v for (k, v) in result.extras.items() if not k.startswith('_')}
         }
 
-        self.running = False
+    def stop(self):
+        if not self.thread:
+            return
 
-    def flag_cancel(self):
         self.cancel_flag = True
+        self.thread.join()
+        self.thread = None
 
-    def join(self):
-        while self.running:
-            time.sleep(0.1)
+    def is_running(self):
+        return self.thread != None
 
 # ------------------------------------------------------------------------------------------
 
-def recognize(spec, choices_values, timeout):
-    """
-    RPC callback that will call dragonfly
-    """
-    logger.info('RPC request: "%s", %s (timeout %d seconds)', spec, repr(choices_values), timeout)
+class SpeechServer(ThreadingMixIn, Server):
 
-    try:
-        result = dragonfly_recognise(spec=spec, choices_values=choices_values, timeout=timeout)
-    except Exception as e:
-        logger.exception('dragonfly exception:')
-        raise e
+    def register(self):
+        self.register_function(self.recognize, 'recognize')
+        self.register_function(self.cancel, 'cancel')
+        self.process = None
 
-    logger.info('Result: %s', repr(result))
-    return result
+        self.handling_request = False
+        self.flag_request_abort = False
 
-def cancel():
-    global RECOGNITION_PROCESS
-    if not RECOGNITION_PROCESS:
-        return
+    def recognize(self, spec, choices_values, timeout):
+        """
+        RPC callback that will call dragonfly
+        """
+        logger.info('RPC request: "%s", %s (timeout %d seconds)', spec, repr(choices_values), timeout)
 
-    RECOGNITION_PROCESS.flag_cancel()
-    RECOGNITION_PROCESS.join()
-    RECOGNITION_PROCESS = None
+        try:
+            result = self.dragonfly_recognise(spec=spec, choices_values=choices_values, timeout=timeout)
+        except Exception as e:
+            logger.exception('dragonfly exception:')
+            raise e
 
-def dragonfly_recognise(spec, choices_values, timeout):
-    """
-    Build a grammar based on spec and choices and send it to dragonfly
-    """
+        logger.info('Result: %s', repr(result))
+        return result
 
-    global RECOGNITION_PROCESS
-    if RECOGNITION_PROCESS:
-        RECOGNITION_PROCESS.flag_cancel()
-        RECOGNITION_PROCESS.join()
+    def cancel(self):
+        if not self.process:
+            return
+        self.flag_request_abort = True
 
-        if RECOGNITION_PROCESS.spec != spec or RECOGNITION_PROCESS.choices_values != choices_values:
-            RECOGNITION_PROCESS = RecognitionProcess(spec, choices_values)
-    else:
-        RECOGNITION_PROCESS = RecognitionProcess(spec, choices_values)
+    def dragonfly_recognise(self, spec, choices_values, timeout):
+        """
+        Build a grammar based on spec and choices and send it to dragonfly
+        """
 
-    return RECOGNITION_PROCESS.run(timeout)    
+        if self.handling_request:
+            self.flag_request_abort = True
+            while self.handling_request:
+                time.sleep(0.1)
 
-def process_result():
-    pass
+        self.flag_request_abort = False
+        self.handling_request = True
+
+        if not self.process or self.process.spec != spec or self.process.choices_values != choices_values:
+            if self.process:
+                self.process.stop()
+            self.process = RecognitionProcess(spec, choices_values)
+            self.process.run_threaded()       
+
+        while self.process.is_running() and not self.flag_request_abort:
+            print "Recognizing, process = {}".format(self.process)
+            result = self.process.get_result()
+            if result:
+                return result
+            time.sleep(0.1)
+
+        self.handling_request = False
+
+    def process_result(self):
+        pass
 
 if __name__ == "__main__":
     engine = Sapi5InProcEngine()
@@ -206,14 +232,14 @@ if __name__ == "__main__":
     address = socket.gethostbyname(socket.gethostname())
     port = 8000
 
-    class MyXMLRPCServer(ThreadingMixIn, Server):
-        pass
-
-    server = MyXMLRPCServer((address, port), allow_none=True)
-    server.register_function(recognize, 'recognize')
-    server.register_function(cancel, 'cancel')
+    server = SpeechServer((address, port), allow_none=True)
+    server.register()
 
     engine.speak('Speak recognition active!')
     logger.info("Speak recognition active at %s:%d", address, port)
 
-    server.serve_forever()
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        if server.process:
+            server.process.stop()
