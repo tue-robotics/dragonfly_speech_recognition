@@ -20,23 +20,8 @@ def error(msg, *args, **kwargs):
     logger.error(msg, *args, **kwargs)
     sys.exit(1)
 
-
-# current_dir = os.path.dirname(os.path.realpath(__file__))
-# data_path = os.path.join(current_dir, '..', '..', 'data')
-#
-#
-# def add_deps_to_path(name):
-#    path = os.path.join(current_dir, '..', '..', 'deps', name)
-#    sys.path.append(path)
-#
-#
-# add_deps_to_path('dragonfly')
 from dragonfly.engines.backend_sapi5.engine import Sapi5InProcEngine
-# from dragonfly import Grammar, CompoundRule, Choice, Rule, Literal, Sequence
-# from dragonfly.test import ElementTester
-
 from dragonfly import *
-from dragonfly.test import ElementTester
 import pythoncom
 
 if __name__ == "__main__":
@@ -50,7 +35,19 @@ if __name__ == "__main__":
     # seq = Sequence([Literal('banana'), Literal('apple')], name='blaat')
     # seq = Sequence([Literal('banana'), Literal('apple')])
     # seq = Alternative([Literal('banana'), Literal('apple')])
-    seq = Literal('banana')
+    # seq = Literal('banana')
+
+    # s1 = Alternative([Literal('banana'), Literal('apple')])
+    # s2 = Alternative([Literal('beer'), Literal('coke')])
+    # s3 = Alternative([s1, s2])
+    # seq = Repetition(s3, 1, 4)
+
+    # Restaurant check: <beverage>|<food> and [(a|and)] <food>
+    beverage = Alternative([Literal('coke'), Literal('fanta')])
+    food1 = Alternative([Literal('apple'), Literal('banana')])
+    food2 = Alternative([Literal('apple'), Literal('banana')])
+    food = Sequence([food1, Literal('and'), Optional(Alternative([Literal('a'), Literal('an')])), food2])
+    seq = Alternative([beverage, food])
 
     bla = Grammar("G")
     class CustomRule(Rule):
@@ -58,17 +55,13 @@ if __name__ == "__main__":
            print node
            self.grammar._process_recognition(node)
 
-    bla.add_rule(CustomRule(element=seq, exported=True))
+    rule = CustomRule(element=seq, exported=True)
+    # rule2 = CustomRule(element=RuleRef(rule))
+    bla.add_rule(rule=rule)
 
     bla.load()
 
     print "Going to recognize"
     while True:
         pythoncom.PumpWaitingMessages()
-
-    print test_seq.recognize('banana apple')
-    # print test_seq.recognize('banana')
     print "Recognition done"
-
-
-    #raw_input("Press any key to close")
