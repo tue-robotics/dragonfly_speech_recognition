@@ -11,5 +11,5 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <run_depend>rospy</run_depend>
-  <run_depend>hmi_msgs</run_depend>
+  <run_depend>hmi_server</run_depend>
 </package>
