@@ -6,10 +6,4 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
 )
 
-catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES dragonfly_speech_recognition
-  CATKIN_DEPENDS
-    hmi_msgs
-#  DEPENDS system_lib
-)
+catkin_package()

@@ -10,10 +10,6 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <build_depend>rospy</build_depend>
-  <build_depend>hmi_msgs</build_depend>
-
   <run_depend>rospy</run_depend>
   <run_depend>hmi_msgs</run_depend>
-
 </package>

@@ -1,6 +1,0 @@
-string spec
-Choice[] choices
-duration time_out
----
-string result
-Choice[] choices
