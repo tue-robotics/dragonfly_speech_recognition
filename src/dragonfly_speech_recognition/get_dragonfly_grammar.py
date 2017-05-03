@@ -50,7 +50,7 @@ def _get_dragonfly_rule_element(target, parser, depth=0):
                 # Add a new literal to the list
                 RULES[conj.name] = Literal(conj.name)
                 conjunctions_list.append(RULES[conj.name])
-                print "Adding literal rule", conj.name
+                # print "Adding literal rule", conj.name
 
         # ToDo: apply caching?
         if len(conjunctions_list) == 1:
@@ -63,7 +63,7 @@ def _get_dragonfly_rule_element(target, parser, depth=0):
     else:
         RULES[target] = Alternative(option_alternative_list)
 
-    print "Adding alternative rule", target
+    # print "Adding alternative rule", target
     return RULES[target]
 
 
@@ -82,9 +82,15 @@ def get_dragonfly_grammar(grammar, target):
             logger.info('Dragonfly node: %s', str(node))
             result = node.value()
             logger.info('Dragonfly result: %s', str(result))
-            flattened_string = " ".join(flatten(result))
+
+            flattened_string = result
+            if isinstance(result, list):
+                flattened_string = " ".join(flatten(result))
+
             logger.info('Dragonfly flattened result: %s', str(flattened_string))
 
+            if not result_queue.empty():
+                logger.warn('There is already a message in the queue! %s', result_queue)
             result_queue.put_nowait(flattened_string)
 
     rule = GrammarRule(element=dragonfly_rule_element, exported=True)
