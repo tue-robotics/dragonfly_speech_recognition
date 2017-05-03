@@ -38,17 +38,19 @@ class DragonflyServer:
             conn.close()
 
     def _process_connection(self, conn):
-        grammar, root = conn.recv()
-        logger.info('Connection accepted from {}, grammar {} :: {}'.format(self._listener.last_accepted, grammar, root))
+        grammar, target = conn.recv()
+        logger.info('Connection accepted from {}\n'
+                    ' - Grammar \n\n {} \n\n - Target \n\n {}'.format(self._listener.last_accepted, grammar, target))
 
-        self._dragonfly_wrapper.set_grammar(grammar, root)
+        self._dragonfly_wrapper.set_grammar(grammar, target)
+
+        print "Grammar set"
 
         while True:
             if conn.poll(.1):  # We have received a cancel request
-                conn.send(None)
                 self._dragonfly_wrapper.unset_grammar()
                 break
             recognition = self._dragonfly_wrapper.get_recognition()
-            if recognition:
+            if recognition is not None:
                 conn.send(recognition)
                 break
