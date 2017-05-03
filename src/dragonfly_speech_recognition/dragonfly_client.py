@@ -1,5 +1,11 @@
 import multiprocessing.connection
 import logging
+import os
+import sys
+
+if os.name == 'nt':
+    sys.path.append(os.path.dirname(os.path.realpath(__file__)) + "/grammar_parser/src/")
+
 from grammar_parser.cfgparser import CFGParser
 
 

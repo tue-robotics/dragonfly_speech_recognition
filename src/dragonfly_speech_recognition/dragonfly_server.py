@@ -52,5 +52,6 @@ class DragonflyServer:
                 break
             recognition = self._dragonfly_wrapper.get_recognition()
             if recognition is not None:
+                self._dragonfly_wrapper.unset_grammar()
                 conn.send(recognition)
                 break

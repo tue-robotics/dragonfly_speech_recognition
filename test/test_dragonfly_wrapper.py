@@ -2,10 +2,13 @@
 import argparse
 import os
 import sys
+import time
 
 if os.name == 'nt':
     sys.path.append(os.path.dirname(os.path.realpath(__file__)) + "/../src/")
-from dragonfly_speech_recognition.dragonfly_client import DragonflyClient
+    from dragonfly_speech_recognition.dragonfly_wrapper import DragonflyWrapper
+else:
+    from dragonfly_speech_recognition.dragonfly_wrapper_stub import DragonflyWrapper
 
 
 def read_valid_file(p, arg):
@@ -16,10 +19,9 @@ def read_valid_file(p, arg):
 
 parser = argparse.ArgumentParser()
 parser.add_argument("target", type=str)
-parser.add_argument("--ip", default="localhost", type=str)
-parser.add_argument("--port", default=3000, type=int)
 parser.add_argument("--grammar", type=str)
 parser.add_argument("--grammar-file", type=lambda x: read_valid_file(parser, x))
+parser.add_argument("--timeout", type=float, default=10)
 args = parser.parse_args()
 
 # Verify the specified grammar
@@ -27,9 +29,12 @@ if (args.grammar_file and args.grammar) or (args.grammar_file is None and args.g
     parser.error("Please specify either a grammar string using --grammar of a grammar file using --grammar-file")
 grammar = args.grammar_file if args.grammar_file else args.grammar
 
-c = DragonflyClient(args.ip, args.port)
+wrapper = DragonflyWrapper()
+wrapper.set_grammar(grammar, args.target)
 
-print "Calling recognize on dragonfly server ({}:{}) for grammar:" \
-      "\n\n{}\n\n" \
-      "----------------------------------------------------------" \
-      "\n\n{}".format(args.ip, args.port, grammar, c.recognize(grammar, args.target))
+start = time.time()
+while time.time() - start < args.timeout:
+    recognition = wrapper.get_recognition()
+    if recognition is not None:
+        print "New recognition:\n\n{}\n\n".format(recognition)
+wrapper.unset_grammar()
