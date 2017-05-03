@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 import logging
+import time
 import multiprocessing.connection
 # from threading import Thread
 
 FORMAT = '%(asctime)s %(module)s [%(levelname)s] %(message)s'
 logging.basicConfig(format=FORMAT)
-logging.getLogger().setLevel(logging.DEBUG)
+logging.getLogger().setLevel(logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Try to import the dragonfly wrapper, if it fails (on a unix machine), use the stub instead
@@ -16,12 +17,25 @@ except ImportError as e:
     from dragonfly_wrapper_stub import DragonflyWrapper
 
 
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
+
 class DragonflyServer:
     def __init__(self, ip, port):
+        logger.info("Setting up DragonflyServer {}:{}".format(ip, port))
         self._listener = multiprocessing.connection.Listener((ip, port))
         self._dragonfly_wrapper = DragonflyWrapper()
 
     def spin(self):
+        logger.info("Spinning ....")
         while True:
             try:
                 conn = self._listener.accept()
@@ -39,12 +53,10 @@ class DragonflyServer:
 
     def _process_connection(self, conn):
         grammar, target = conn.recv()
-        logger.info('Connection accepted from {}\n'
-                    ' - Grammar \n\n {} \n\n - Target \n\n {}'.format(self._listener.last_accepted, grammar, target))
+        logger.info('Connection accepted from {} :: Target: {}'.format(self._listener.last_accepted, target))
+        logger.debug("Grammar: {}".format(grammar))
 
         self._dragonfly_wrapper.set_grammar(grammar, target)
-
-        print "Grammar set"
 
         while True:
             if conn.poll(.1):  # We have received a cancel request
@@ -52,6 +64,7 @@ class DragonflyServer:
                 break
             recognition = self._dragonfly_wrapper.get_recognition()
             if recognition is not None:
-                self._dragonfly_wrapper.unset_grammar()
+                logging.info("Sending result back to the client: \x1b[;44m'%s'\x1b[0m", recognition)
                 conn.send(recognition)
+                self._dragonfly_wrapper.unset_grammar()
                 break

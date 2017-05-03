@@ -12,7 +12,7 @@ from dragonfly.engines.backend_sapi5.engine import Sapi5InProcEngine
 
 FORMAT = '%(asctime)s %(module)s [%(levelname)s] %(message)s'
 logging.basicConfig(format=FORMAT)
-logging.getLogger().setLevel(logging.DEBUG)
+logging.getLogger().setLevel(logging.INFO)
 logger = logging.getLogger(__name__)
 
 # make dragonfly less verbose
@@ -32,7 +32,7 @@ class DragonflyWrapper:
     def set_grammar(self, grammar, target):
         pythoncom.PumpWaitingMessages()  # Get rid of all recognition results from previous cycle
 
-        self._dragonfly_grammar, self._result_queue = get_dragonfly_grammar(grammar, target)
+        self._dragonfly_grammar = get_dragonfly_grammar(grammar, target, self._result_queue)
 
         # Now load the grammar
         start = time.time()
@@ -49,6 +49,7 @@ class DragonflyWrapper:
             pythoncom.PumpWaitingMessages()  # Get rid of all leftover messages in the queue
 
     def get_recognition(self):
+        logger.debug("Main thread recognition Q [id=%s, qsize=%d]", id(self._result_queue), self._result_queue.qsize())
         # Pump the win32 com iface
         pythoncom.PumpWaitingMessages()
         if self._result_queue.empty():

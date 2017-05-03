@@ -11,7 +11,7 @@ from grammar_parser.cfgparser import CFGParser
 
 FORMAT = '%(asctime)s %(module)s [%(levelname)s] %(message)s'
 logging.basicConfig(format=FORMAT)
-logging.getLogger().setLevel(logging.DEBUG)
+logging.getLogger().setLevel(logging.INFO)
 logger = logging.getLogger(__name__)
 
 RULES = {}
@@ -50,7 +50,7 @@ def _get_dragonfly_rule_element(target, parser, depth=0):
                 # Add a new literal to the list
                 RULES[conj.name] = Literal(conj.name)
                 conjunctions_list.append(RULES[conj.name])
-                # print "Adding literal rule", conj.name
+                logger.debug("Adding literal rule: %s",  conj.name)
 
         # ToDo: apply caching?
         if len(conjunctions_list) == 1:
@@ -63,11 +63,11 @@ def _get_dragonfly_rule_element(target, parser, depth=0):
     else:
         RULES[target] = Alternative(option_alternative_list)
 
-    # print "Adding alternative rule", target
+    logger.debug("Adding alternative rule: %s", target)
     return RULES[target]
 
 
-def get_dragonfly_grammar(grammar, target):
+def get_dragonfly_grammar(grammar, target, result_queue):
     global RULES
     RULES = {}
 
@@ -75,7 +75,8 @@ def get_dragonfly_grammar(grammar, target):
     dragonfly_rule_element = _get_dragonfly_rule_element(target, parser)
 
     dragonfly_grammar = Grammar("G")
-    result_queue = Queue()
+    with result_queue.mutex:
+        result_queue.queue.clear()
 
     class GrammarRule(Rule):
         def process_recognition(self, node):
@@ -93,9 +94,11 @@ def get_dragonfly_grammar(grammar, target):
                 logger.warn('There is already a message in the queue! %s', result_queue)
             result_queue.put_nowait(flattened_string)
 
+            logger.debug("Dragonfly thread recognition Q [id=%s, qsize=%d]", id(result_queue), result_queue.qsize())
+
     rule = GrammarRule(element=dragonfly_rule_element, exported=True)
     dragonfly_grammar.add_rule(rule)
 
-    return dragonfly_grammar, result_queue
+    return dragonfly_grammar
 
 
