@@ -1,3 +1,6 @@
 [submodule "deps/dragonfly"]
-	path = deps/dragonfly
+	path = src/dragonfly_speech_recognition/dragonfly
 	url = https://github.com/t4ngo/dragonfly.git
+[submodule "deps/grammar_parser"]
+	path = src/dragonfly_speech_recognition/grammar_parser
+	url = https://github.com/tue-robotics/grammar_parser
