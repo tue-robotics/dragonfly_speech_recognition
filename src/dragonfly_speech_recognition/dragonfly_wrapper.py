@@ -26,6 +26,7 @@ class DragonflyWrapper:
     def __init__(self):
         self._engine = Sapi5InProcEngine()
         self._engine.connect()
+        self._engine.speak("Speech recognition initialized")
         self._dragonfly_grammar = None
         self._result_queue = Queue()
 
