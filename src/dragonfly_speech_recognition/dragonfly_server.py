@@ -16,6 +16,9 @@ except ImportError as e:
     logger.warn("Failed to import DragonflyWrapper {} using stub instead ...".format(e))
     from dragonfly_wrapper_stub import DragonflyWrapper
 
+# Import the recorder
+from recorder import Recorder
+
 
 class bcolors:
     HEADER = '\033[95m'
@@ -33,6 +36,7 @@ class DragonflyServer:
         logger.info("Setting up DragonflyServer {}:{}".format(ip, port))
         self._listener = multiprocessing.connection.Listener((ip, port))
         self._dragonfly_wrapper = DragonflyWrapper()
+        self._recorder = Recorder()
 
     def spin(self):
         logger.info("Spinning ....")
@@ -56,15 +60,18 @@ class DragonflyServer:
         logger.info('Connection accepted from {} :: Target: {}'.format(self._listener.last_accepted, target))
         logger.debug("Grammar: {}".format(grammar))
 
+        self._recorder.start()
         self._dragonfly_wrapper.set_grammar(grammar, target)
 
         while True:
             if conn.poll(.1):  # We have received a cancel request
+                self._recorder.stop()
                 self._dragonfly_wrapper.unset_grammar()
                 break
             recognition = self._dragonfly_wrapper.get_recognition()
             if recognition is not None:
                 logging.info("Sending result back to the client: \x1b[;44m'%s'\x1b[0m", recognition)
                 conn.send(recognition)
+                self._recorder.stop()
                 self._dragonfly_wrapper.unset_grammar()
                 break
