@@ -1,0 +1,25 @@
+#!/usr/bin/env python
+
+import os
+import sys
+import time
+
+if os.name == 'nt':
+    sys.path.append(os.path.dirname(os.path.realpath(__file__)) + "/../src/")
+
+from dragonfly_speech_recognition.recorder import Recorder
+
+print "[TEST]: Constructing recorder"
+rec = Recorder()
+
+print "[TEST]: Starting recorder"
+rec.start()
+
+print "[TEST]: Start sleeping"
+time.sleep(5.0)
+print "[TEST]: Done sleeping"
+
+print "[TEST]: Stopping recorder"
+rec.stop()
+
+print "[TEST]: Done"
