@@ -69,3 +69,6 @@ class Recorder(object):
         wave_file.setframerate(RATE)
         wave_file.writeframes(b''.join(frames))
         wave_file.close()
+
+        # Set stop requested back to False
+        self._stop_requested = False

@@ -12,14 +12,19 @@ from dragonfly_speech_recognition.recorder import Recorder
 print "[TEST]: Constructing recorder"
 rec = Recorder()
 
-print "[TEST]: Starting recorder"
-rec.start()
+for i in range(2):
+    print "[TEST]: Starting recorder {} at {}".format(i, time.strftime("%H:%M:%S"))
+    rec.start()
 
-print "[TEST]: Start sleeping"
-time.sleep(5.0)
-print "[TEST]: Done sleeping"
+    print "[TEST]: Start sleeping {} at {}".format(i, time.strftime("%H:%M:%S"))
+    time.sleep(2.0)
+    print "[TEST]: Done sleeping"
 
-print "[TEST]: Stopping recorder"
-rec.stop()
+    print "[TEST]: Stopping recorder {} at {}".format(i, time.strftime("%H:%M:%S"))
+    rec.stop()
 
-print "[TEST]: Done"
+    time.sleep(1.0)
+
+    print "[TEST]: Done {} at {}".format(i, time.strftime("%H:%M:%S"))
+
+print "[TEST] Done!"
