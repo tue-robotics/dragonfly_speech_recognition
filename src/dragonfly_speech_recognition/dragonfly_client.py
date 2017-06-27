@@ -37,3 +37,10 @@ class DragonflyClient:
         logging.info("Dragonfly Client received sentence %s", sentence)
 
         return grammar_parser.parse(target, sentence), sentence
+
+    def restart_node(self):
+        logging.info("Sending the restart command")
+
+        conn = multiprocessing.connection.Client(self._address)
+        conn.send('restart_node')
+
