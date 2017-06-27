@@ -58,8 +58,11 @@ class Recorder(object):
 
         # Log the timestamp
         # ToDo: add path
-        name = "record_" + time.strftime("%Y_%m_%d_%H_%m_%S") + ".wav"
-        filename = os.path.join(self._path, name)
+        name = "record_" + time.strftime("%H_%M_%S") + ".wav"
+        path = os.path.join(self._path, time.strftime("%Y"), time.strftime("%m"), time.strftime("%d"))
+        if not os.path.exists(path):
+	    os.makedirs(path)
+        filename = os.path.join(path, name)
 
         # Write to file
         print "Writing to file {}".format(filename)
