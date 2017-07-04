@@ -30,6 +30,7 @@ class HMIServerDragonflyClient(AbstractHMIServer):
 
 
     def restart_node(self, data):
+        rospy.loginfo('sending the restart command to windows')
         c = DragonflyClient(*self._address)
         c.restart_node()
         return {}
