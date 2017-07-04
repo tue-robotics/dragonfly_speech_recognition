@@ -14,7 +14,7 @@ class HMIServerDragonflyClient(AbstractHMIServer):
         self._address = (rospy.get_param('~dragonfly_server_ip', 'localhost'),
                          rospy.get_param('~dragonfly_server_port', 3000))
 
-        self.restart_server = rospy.Service('restart_node', Empty, self.restart_node)
+        self.restart_server = rospy.Service('~restart_node', Empty, self.restart_node)
 
 
     def _determine_answer(self, description, grammar, target, is_preempt_requested):
