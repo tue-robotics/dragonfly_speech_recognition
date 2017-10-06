@@ -61,7 +61,7 @@ class Recorder(object):
         name = "record_" + time.strftime("%H_%M_%S") + ".wav"
         path = os.path.join(self._path, time.strftime("%Y"), time.strftime("%m"), time.strftime("%d"))
         if not os.path.exists(path):
-	    os.makedirs(path)
+	        os.makedirs(path)
         filename = os.path.join(path, name)
 
         # Write to file
