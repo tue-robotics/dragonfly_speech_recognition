@@ -13,8 +13,8 @@ ROS Wrapper for https://github.com/t4ngo/dragonfly.
 ### Installation
 
     git clone https://github.com/tue-robotics/dragonfly_speech_recognition.git --recursive
-    cd to dragonfly folder
-    `pip install -e .`
+    cd dragonfly_speech_recognition/src/dragonfly_speech_recognition/dragonfly
+    pip install -e .
 
 ## Client installation
 
