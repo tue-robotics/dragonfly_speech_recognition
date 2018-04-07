@@ -6,7 +6,8 @@ ROS Wrapper for https://github.com/t4ngo/dragonfly.
 ### Prerequisites server
 
 - Windows speech recognition engine (Windows Vista+)
-- PyWin32 (`pip install pypiwin32` or use the installer)
+- Python (https://matthewhorne.me/how-to-install-python-and-pip-on-windows-10/)
+- PyWin32 (`pip install pypiwin32` or use the installer) (https://github.com/mhammond/pywin32)
 
 ### Installation
 
