@@ -16,6 +16,20 @@ ROS Wrapper for https://github.com/t4ngo/dragonfly.
     cd dragonfly_speech_recognition/src/dragonfly_speech_recognition/dragonfly
     pip install -e .
 
+### Post Install
+- Disable firewall
+- Set static IP
+
+### Autostart:
+- goto to startup folder: `shell:startup`
+- create `start_dragonfly_speech_recognition.bat`:
+
+### start_dragonfly_speech_recognition.bat
+    
+    :loop
+    python -u "C:\Users\amigo\dragonfly_speech_recognition\scripts\dragonfly_server" --ip 192.168.44.XX
+    goto loop
+
 ## Client installation
 
 Assuming a ROS environment has already been setup, clone the package in your workspace
