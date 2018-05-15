@@ -20,6 +20,7 @@ ROS Wrapper for https://github.com/t4ngo/dragonfly.
 ### Post Install
 - Disable firewall
 - Set static IP
+- Disable sleep & screen saver
 
 ### Autostart:
 - goto to startup folder by entering the following in run: `shell:startup`
