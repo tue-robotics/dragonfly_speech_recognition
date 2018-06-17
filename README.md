@@ -30,6 +30,15 @@ ROS Wrapper for https://github.com/t4ngo/dragonfly.
     python -u "C:\Users\amigo\dragonfly_speech_recognition\scripts\dragonfly_server" --ip 192.168.44.XX
     goto loop
     ```
+    
+### Troubleshooting
+
+```
+version = p.load()
+EOFError
+```
+
+Remove the following folder on your windows machine: `C:\Python27\Lib\site-packages\win32com\gen_py`
 
 ## Client installation
 
