@@ -7,6 +7,8 @@ import time
 if os.name == 'nt':
     sys.path.append(os.path.dirname(os.path.realpath(__file__)) + "/../src/")
     from dragonfly_speech_recognition.dragonfly_wrapper import DragonflyWrapper
+    sys.path.append(os.path.dirname(os.path.realpath(__file__)) + "/grammar_parser/src/")
+    from grammar_parser.cfgparser import CFGParser
 else:
     from dragonfly_speech_recognition.dragonfly_wrapper_stub import DragonflyWrapper
 
@@ -29,12 +31,21 @@ if (args.grammar_file and args.grammar) or (args.grammar_file is None and args.g
     parser.error("Please specify either a grammar string using --grammar of a grammar file using --grammar-file")
 grammar = args.grammar_file if args.grammar_file else args.grammar
 
+cfg_parser = CFGParser.fromstring(grammar)
+random_sentence = cfg_parser.get_random_sentence(args.target)
+print "\nExample sentence: {}\n".format(random_sentence)
+
 wrapper = DragonflyWrapper()
 wrapper.set_grammar(grammar, args.target)
 
 start = time.time()
 while time.time() - start < args.timeout:
+
     recognition = wrapper.get_recognition()
     if recognition is not None:
         print "New recognition:\n\n{}\n\n".format(recognition)
 wrapper.unset_grammar()
+
+# Example use:
+# python -u test_dragonfly_wrapper --grammar "T -> apple | pie | banana" T
+# python -u test_dragonfly_wrapper --grammar-file C:/Users/amigo/dragonfly_speech_recognition/example_grammars/gpsr_grammar.fcfg T
