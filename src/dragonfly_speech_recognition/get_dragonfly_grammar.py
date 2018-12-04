@@ -4,7 +4,7 @@ import sys
 import os
 from Queue import Queue
 from compiler.ast import flatten
-from dragonfly import Alternative, Sequence, Literal, Grammar, Rule, Optional, Repetition
+# from dragonfly import Alternative, Sequence, Literal, Grammar, Rule, Optional, Repetition
 if os.name == 'nt':
     sys.path.append(os.path.dirname(os.path.realpath(__file__)) + "/grammar_parser/src/")
 from grammar_parser.cfgparser import CFGParser
@@ -48,7 +48,7 @@ def _get_dragonfly_rule_element(target, parser, depth=0):
                     conjunctions_list.append(result)
             else:
                 # Add a new literal to the list
-                RULES[conj.name] = Literal(conj.name)
+                RULES[conj.name] = conj.name #Literal(conj.name)
                 conjunctions_list.append(RULES[conj.name])
                 logger.debug("Adding literal rule: %s",  conj.name)
 
@@ -56,12 +56,14 @@ def _get_dragonfly_rule_element(target, parser, depth=0):
         if len(conjunctions_list) == 1:
             option_alternative_list.append(conjunctions_list[0])
         else:
-            option_alternative_list.append(Sequence(conjunctions_list))
+            # option_alternative_list.append(Sequence(conjunctions_list))
+            option_alternative_list.append([(conjunctions_list)])
 
     if len(option_alternative_list) == 1:
         RULES[target] = option_alternative_list[0]
     else:
-        RULES[target] = Alternative(option_alternative_list)
+        # RULES[target] = Alternative(option_alternative_list)
+        RULES[target] = option_alternative_list
 
     logger.debug("Adding alternative rule: %s", target)
     return RULES[target]
@@ -90,9 +92,10 @@ def get_dragonfly_grammar(grammar, target, result_queue):
 
             logger.info('Dragonfly flattened result: %s', str(flattened_string))
 
-            if not result_queue.empty():
-                logger.warn('There is already a message in the queue! %s', result_queue)
-            result_queue.put_nowait(flattened_string)
+            if result_queue:
+                if not result_queue.empty():
+                    logger.warn('There is already a message in the queue! %s', result_queue)
+                result_queue.put_nowait(flattened_string)
 
             logger.debug("Dragonfly thread recognition Q [id=%s, qsize=%d]", id(result_queue), result_queue.qsize())
 
@@ -101,4 +104,17 @@ def get_dragonfly_grammar(grammar, target, result_queue):
 
     return dragonfly_grammar
 
+if __name__ == "__main__":
+    import sys
 
+    grammar_file = sys.argv[1]
+    rule = sys.argv[2]
+
+    with open(grammar_file) as f:
+        grammar = f.read()
+        parser = CFGParser.fromstring(grammar)
+        df_grammar = _get_dragonfly_rule_element(rule, parser)
+
+        import pprint
+
+        pprint.pprint(df_grammar)
