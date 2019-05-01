@@ -46,12 +46,12 @@ class Recorder(object):
                             rate=RATE, input=True,
                             frames_per_buffer=CHUNK)
         frames = []
-        print "Starting record loop"
+        print("Starting record loop")
         while not self._stop_requested:
             data = stream.read(CHUNK)
             frames.append(data)
 
-        print "Record loop stopped"
+        print("Record loop stopped")
         stream.stop_stream()
         stream.close()
         audio.terminate()
@@ -59,13 +59,13 @@ class Recorder(object):
         # Log the timestamp
         # ToDo: add path
         name = "record_" + time.strftime("%H_%M_%S") + ".wav"
-        path = os.path.join(self._path, time.strftime("%Y"), time.strftime("%m"), time.strftime("%d"))
-        if not os.path.exists(path):
-	        os.makedirs(path)
-        filename = os.path.join(path, name)
+        folderpath = os.path.join(self._path, time.strftime("%Y"), time.strftime("%m"), time.strftime("%d"))
+        if not os.path.exists(folderpath):
+                os.makedirs(folderpath)
+        filename = os.path.join(folderpath, name)
 
         # Write to file
-        print "Writing to file {}".format(filename)
+        print("Writing to file {}".format(filename))
         wave_file = wave.open(filename, 'wb')
         wave_file.setnchannels(CHANNELS)
         wave_file.setsampwidth(audio.get_sample_size(FORMAT))
