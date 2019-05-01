@@ -33,7 +33,7 @@ grammar = args.grammar_file if args.grammar_file else args.grammar
 
 cfg_parser = CFGParser.fromstring(grammar)
 random_sentence = cfg_parser.get_random_sentence(args.target)
-print("\nExample sentence: {}\n".format(random_sentence))
+print "\nExample sentence: {}\n".format(random_sentence)
 
 wrapper = DragonflyWrapper()
 wrapper.set_grammar(grammar, args.target)
@@ -43,7 +43,7 @@ while time.time() - start < args.timeout:
 
     recognition = wrapper.get_recognition()
     if recognition is not None:
-        print("New recognition:\n\n{}\n\n".format(recognition))
+        print "New recognition:\n\n{}\n\n".format(recognition)
 wrapper.unset_grammar()
 
 # Example use:
