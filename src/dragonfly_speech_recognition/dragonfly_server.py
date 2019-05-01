@@ -56,7 +56,13 @@ class DragonflyServer:
             conn.close()
 
     def _process_connection(self, conn):
-        grammar, target = conn.recv()
+        # parse command
+        cmd = conn.recv()
+        if cmd == 'restart_node':
+            logger.warn('restarting node now!!!')
+            exit(1)
+        grammar, target = cmd
+
         logger.info('Connection accepted from {} :: Target: {}'.format(self._listener.last_accepted, target))
         logger.debug("Grammar: {}".format(grammar))
 

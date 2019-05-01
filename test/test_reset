@@ -1,0 +1,24 @@
+#!/usr/bin/env python
+import argparse
+import os
+import sys
+
+if os.name == 'nt':
+    sys.path.append(os.path.dirname(os.path.realpath(__file__)) + "/../src/")
+from dragonfly_speech_recognition.dragonfly_client import DragonflyClient
+
+
+def read_valid_file(p, arg):
+    if not os.path.exists(arg):
+        p.error("The file %s does not exist!" % arg)
+    else:
+        return open(arg, 'r').read()
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--ip", default="localhost", type=str)
+parser.add_argument("--port", default=3000, type=int)
+args = parser.parse_args()
+
+
+c = DragonflyClient(args.ip, args.port)
+c.restart_node()
