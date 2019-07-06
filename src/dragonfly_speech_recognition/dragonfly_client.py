@@ -2,6 +2,7 @@ import multiprocessing.connection
 import logging
 import os
 import sys
+import time
 
 if os.name == 'nt':
     sys.path.append(os.path.dirname(os.path.realpath(__file__)) + "/grammar_parser/src/")
@@ -26,10 +27,16 @@ class DragonflyClient:
 
         conn = multiprocessing.connection.Client(self._address)
         conn.send((grammar, target))
+        start_time = time.time()
         while not conn.poll(.1):
-            if is_preempt_requested and is_preempt_requested():
-                conn.send(0)  # Send a cancel request
+            end_time = time.time()
+            if end_time - start_time > 10:
+                conn.send(0)
                 return None
+        # while not conn.poll(.1):
+        #     if is_preempt_requested and is_preempt_requested():
+        #         conn.send(0)  # Send a cancel request
+        #         return None
 
         # Now wait for result
         sentence = conn.recv()
