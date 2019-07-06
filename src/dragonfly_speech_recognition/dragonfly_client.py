@@ -25,6 +25,9 @@ class DragonflyClient:
         grammar_parser = CFGParser.fromstring(grammar)
         grammar_parser.verify(target)
 
+        print("DragonFly Grammar Before: ")
+        print(grammar)
+
         conn = multiprocessing.connection.Client(self._address)
         conn.send((grammar, target))
         start_time = time.time()
@@ -42,6 +45,10 @@ class DragonflyClient:
         sentence = conn.recv()
 
         logging.info("Dragonfly Client received sentence %s", sentence)
+        print("Dragonfly Client received sentence %s", sentence)
+        print(grammar_parser.parse(target, sentence))
+        print("DragonFly Grammar After: ")
+        print(grammar)
 
         return grammar_parser.parse(target, sentence), sentence
 
