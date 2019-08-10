@@ -68,6 +68,6 @@ class DragonflyServer:
             recognition = self._dragonfly_wrapper.get_recognition()
             if recognition is not None:
                 logging.info("Sending result back to the client: \x1b[;44m'%s'\x1b[0m", recognition)
-                conn.send(recognition)
                 self._dragonfly_wrapper.unset_grammar()
+                conn.send(recognition)
                 break
