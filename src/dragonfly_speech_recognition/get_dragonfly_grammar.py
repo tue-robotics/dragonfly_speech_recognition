@@ -67,14 +67,14 @@ def _get_dragonfly_rule_element(target, parser, depth=0):
     return RULES[target]
 
 
-def get_dragonfly_grammar(grammar, target, result_queue):
+def get_dragonfly_grammar(engine, grammar, target, result_queue):
     global RULES
     RULES = {}
 
     parser = CFGParser.fromstring(grammar)
     dragonfly_rule_element = _get_dragonfly_rule_element(target, parser)
 
-    dragonfly_grammar = Grammar("G")
+    dragonfly_grammar = Grammar("G", engine=engine)
     with result_queue.mutex:
         result_queue.queue.clear()
 

@@ -32,7 +32,7 @@ class DragonflyWrapper:
     def set_grammar(self, grammar, target):
         pythoncom.PumpWaitingMessages()  # Get rid of all recognition results from previous cycle
 
-        self._dragonfly_grammar = get_dragonfly_grammar(grammar, target, self._result_queue)
+        self._dragonfly_grammar = get_dragonfly_grammar(self._engine, grammar, target, self._result_queue)
 
         # Now load the grammar
         start = time.time()
