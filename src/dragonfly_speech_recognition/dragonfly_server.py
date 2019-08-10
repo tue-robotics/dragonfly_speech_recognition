@@ -39,9 +39,6 @@ class DragonflyServer:
         while True:
             try:
                 conn = self._listener.accept()
-                # t = Thread(target=self._process_connection, args=[conn])
-                # t.start()
-                # t.join()
                 self._process_connection(conn)
             except KeyboardInterrupt:
                 logger.warn('keyboard interrupt')
