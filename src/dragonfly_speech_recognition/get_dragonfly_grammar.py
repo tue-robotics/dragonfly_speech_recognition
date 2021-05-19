@@ -1,6 +1,5 @@
 import logging
 
-import collections
 import sys
 import os
 from dragonfly import Alternative, Sequence, Literal, Grammar, Rule
@@ -16,11 +15,15 @@ logger = logging.getLogger(__name__)
 RULES = {}
 
 
-def flatten(x):
-    if isinstance(x, collections.Iterable):
-        return [a for i in x for a in flatten(i)]
-    else:
-        return [x]
+def flatten(seq):
+    l = []
+    for elt in seq:
+        if type(elt) in [tuple, list]:
+            for elt2 in flatten(elt):
+                l.append(elt2)
+        else:
+            l.append(elt)
+    return l
 
 
 def _get_dragonfly_rule_element(target, parser, depth=0):
