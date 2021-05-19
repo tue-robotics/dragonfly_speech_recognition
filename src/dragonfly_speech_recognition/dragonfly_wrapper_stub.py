@@ -1,6 +1,7 @@
-import thread
 import os
 import sys
+from threading import Thread
+import traceback
 
 if os.name == 'nt':
     sys.path.append(os.path.dirname(os.path.realpath(__file__)) + "/grammar_parser/src/")
@@ -22,7 +23,7 @@ class DragonflyWrapper:
     def set_grammar(self, grammar, target):
         self._grammar = grammar
         self._target = target
-        thread.start_new_thread(self._recognition_thread, ())
+        Thread(target=self._recognition_thread).start()
 
     def unset_grammar(self):
         self._reset()
@@ -33,7 +34,7 @@ class DragonflyWrapper:
                 cfg_parser = CFGParser.fromstring(self._grammar)
                 self._sentence = cfg_parser.get_random_sentence(self._target)
             except Exception as e:
-                print e
+                print(f"Could not get random string: {e}\n{traceback.format_exc()}")
                 self._sentence = ""
         self._grammar = None
 

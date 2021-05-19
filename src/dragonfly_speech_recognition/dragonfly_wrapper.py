@@ -2,11 +2,10 @@ import logging
 
 import pythoncom
 import winsound
-import sys
 import os
 import time
-from Queue import Queue
-from get_dragonfly_grammar import get_dragonfly_grammar
+from queue import Queue
+from .get_dragonfly_grammar import get_dragonfly_grammar
 from dragonfly.engines.backend_sapi5.engine import Sapi5InProcEngine
 
 

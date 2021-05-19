@@ -1,10 +1,9 @@
 import logging
 
+import collections
 import sys
 import os
-from Queue import Queue
-from compiler.ast import flatten
-from dragonfly import Alternative, Sequence, Literal, Grammar, Rule, Optional, Repetition
+from dragonfly import Alternative, Sequence, Literal, Grammar, Rule
 if os.name == 'nt':
     sys.path.append(os.path.dirname(os.path.realpath(__file__)) + "/grammar_parser/src/")
 from grammar_parser.cfgparser import CFGParser
@@ -15,6 +14,13 @@ logging.getLogger().setLevel(logging.INFO)
 logger = logging.getLogger(__name__)
 
 RULES = {}
+
+
+def flatten(x):
+    if isinstance(x, collections.Iterable):
+        return [a for i in x for a in flatten(i)]
+    else:
+        return [x]
 
 
 def _get_dragonfly_rule_element(target, parser, depth=0):
@@ -91,7 +97,7 @@ def get_dragonfly_grammar(engine, grammar, target, result_queue):
             logger.info('Dragonfly flattened result: %s', str(flattened_string))
 
             if not result_queue.empty():
-                logger.warn('There is already a message in the queue! %s', result_queue)
+                logger.warning('There is already a message in the queue! %s', result_queue)
             result_queue.put_nowait(flattened_string)
 
             logger.debug("Dragonfly thread recognition Q [id=%s, qsize=%d]", id(result_queue), result_queue.qsize())
@@ -100,5 +106,3 @@ def get_dragonfly_grammar(engine, grammar, target, result_queue):
     dragonfly_grammar.add_rule(rule)
 
     return dragonfly_grammar
-
-

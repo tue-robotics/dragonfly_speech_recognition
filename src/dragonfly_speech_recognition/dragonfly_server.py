@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 import logging
-import time
 import multiprocessing.connection
-# from threading import Thread
+import traceback
 
 FORMAT = '%(asctime)s %(module)s [%(levelname)s] %(message)s'
 logging.basicConfig(format=FORMAT)
@@ -11,10 +10,10 @@ logger = logging.getLogger(__name__)
 
 # Try to import the dragonfly wrapper, if it fails (on a unix machine), use the stub instead
 try:
-    from dragonfly_wrapper import DragonflyWrapper
+    from .dragonfly_wrapper import DragonflyWrapper
 except ImportError as e:
-    logger.warn("Failed to import DragonflyWrapper {} using stub instead ...".format(e))
-    from dragonfly_wrapper_stub import DragonflyWrapper
+    logger.warning(f"Failed to import DragonflyWrapper: '{e}' using stub instead ...\n{traceback.format_exc()}")
+    from .dragonfly_wrapper_stub import DragonflyWrapper
 
 
 class bcolors:
@@ -41,10 +40,10 @@ class DragonflyServer:
                 conn = self._listener.accept()
                 self._process_connection(conn)
             except KeyboardInterrupt:
-                logger.warn('keyboard interrupt')
+                logger.warning('keyboard interrupt')
                 break
-            except Exception:
-                logger.exception('speech exception')
+            except Exception as e:
+                logger.exception(f'Speech exception: {e}\n{traceback.format_exc()}')
 
             conn.close()
 
@@ -52,7 +51,7 @@ class DragonflyServer:
         # parse command
         cmd = conn.recv()
         if cmd == 'restart_node':
-            logger.warn('restarting node now!!!')
+            logger.warning('restarting node now!!!')
             exit(1)
         grammar, target = cmd
 

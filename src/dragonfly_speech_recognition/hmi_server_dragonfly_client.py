@@ -3,6 +3,7 @@ from hmi import AbstractHMIServer, HMIResult
 from dragonfly_speech_recognition.dragonfly_client import DragonflyClient
 from std_srvs.srv import Empty
 
+
 class HMIServerDragonflyClient(AbstractHMIServer):
 
     def __init__(self):
@@ -16,7 +17,6 @@ class HMIServerDragonflyClient(AbstractHMIServer):
 
         self.restart_server = rospy.Service('~restart_node', Empty, self.restart_node)
 
-
     def _determine_answer(self, description, grammar, target, is_preempt_requested):
         c = DragonflyClient(*self._address)
         result = c.recognize(grammar, target, is_preempt_requested)
@@ -27,7 +27,6 @@ class HMIServerDragonflyClient(AbstractHMIServer):
         semantics, sentence = result
 
         return HMIResult(sentence, semantics)
-
 
     def restart_node(self, data):
         rospy.loginfo('sending the restart command to windows')
