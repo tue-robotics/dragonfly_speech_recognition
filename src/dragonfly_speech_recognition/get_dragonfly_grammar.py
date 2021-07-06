@@ -2,9 +2,7 @@ import logging
 
 import sys
 import os
-from Queue import Queue
-from compiler.ast import flatten
-from dragonfly import Alternative, Sequence, Literal, Grammar, Rule, Optional, Repetition
+from dragonfly import Alternative, Sequence, Literal, Grammar, Rule
 if os.name == 'nt':
     sys.path.append(os.path.dirname(os.path.realpath(__file__)) + "/grammar_parser/src/")
 from grammar_parser.cfgparser import CFGParser
@@ -15,6 +13,17 @@ logging.getLogger().setLevel(logging.INFO)
 logger = logging.getLogger(__name__)
 
 RULES = {}
+
+
+def flatten(seq):
+    l = []
+    for elt in seq:
+        if type(elt) in [tuple, list]:
+            for elt2 in flatten(elt):
+                l.append(elt2)
+        else:
+            l.append(elt)
+    return l
 
 
 def _get_dragonfly_rule_element(target, parser, depth=0):
@@ -67,14 +76,14 @@ def _get_dragonfly_rule_element(target, parser, depth=0):
     return RULES[target]
 
 
-def get_dragonfly_grammar(grammar, target, result_queue):
+def get_dragonfly_grammar(engine, grammar, target, result_queue):
     global RULES
     RULES = {}
 
     parser = CFGParser.fromstring(grammar)
     dragonfly_rule_element = _get_dragonfly_rule_element(target, parser)
 
-    dragonfly_grammar = Grammar("G")
+    dragonfly_grammar = Grammar("G", engine=engine)
     with result_queue.mutex:
         result_queue.queue.clear()
 
@@ -91,7 +100,7 @@ def get_dragonfly_grammar(grammar, target, result_queue):
             logger.info('Dragonfly flattened result: %s', str(flattened_string))
 
             if not result_queue.empty():
-                logger.warn('There is already a message in the queue! %s', result_queue)
+                logger.warning('There is already a message in the queue! %s', result_queue)
             result_queue.put_nowait(flattened_string)
 
             logger.debug("Dragonfly thread recognition Q [id=%s, qsize=%d]", id(result_queue), result_queue.qsize())
@@ -100,5 +109,3 @@ def get_dragonfly_grammar(grammar, target, result_queue):
     dragonfly_grammar.add_rule(rule)
 
     return dragonfly_grammar
-
-

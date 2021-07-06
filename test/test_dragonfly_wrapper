@@ -36,5 +36,5 @@ start = time.time()
 while time.time() - start < args.timeout:
     recognition = wrapper.get_recognition()
     if recognition is not None:
-        print "New recognition:\n\n{}\n\n".format(recognition)
+        print("New recognition:\n\n{}\n\n".format(recognition))
 wrapper.unset_grammar()

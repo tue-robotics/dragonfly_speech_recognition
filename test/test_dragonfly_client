@@ -29,7 +29,7 @@ grammar = args.grammar_file if args.grammar_file else args.grammar
 
 c = DragonflyClient(args.ip, args.port)
 
-print "Calling recognize on dragonfly server ({}:{}) for grammar:" \
-      "\n\n{}\n\n" \
-      "----------------------------------------------------------" \
-      "\n\n{}".format(args.ip, args.port, grammar, c.recognize(grammar, args.target))
+print("Calling recognize on dragonfly server ({}:{}) for grammar:"
+      "\n\n{}\n\n"
+      "----------------------------------------------------------"
+      "\n\n{}".format(args.ip, args.port, grammar, c.recognize(grammar, args.target)))
