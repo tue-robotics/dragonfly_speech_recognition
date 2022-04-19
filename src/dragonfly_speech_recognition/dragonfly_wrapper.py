@@ -7,6 +7,7 @@ import time
 from queue import Queue
 from .get_dragonfly_grammar import get_dragonfly_grammar
 from dragonfly.engines.backend_sapi5.engine import Sapi5InProcEngine
+from win32com.client.gencache import EnsureDispatch
 
 
 FORMAT = '%(asctime)s %(module)s [%(levelname)s] %(message)s'
@@ -19,6 +20,27 @@ logging.getLogger('engine.compiler').setLevel(logging.INFO)
 logging.getLogger('grammar.decode').setLevel(logging.INFO)
 logging.getLogger('grammar.begin').setLevel(logging.INFO)
 logging.getLogger('compound.parse').setLevel(logging.INFO)
+
+# Fix cache issues
+def _fix_cache(name: str):
+    try:
+        EnsureDispatch(name)
+    except AttributeError:
+        # Corner case dependencies.
+        import re
+        import sys
+        import shutil
+        from win32com import __gen_path__ as win32_gen_path
+        # Remove cache and try again.
+        MODULE_LIST = [m.__name__ for m in sys.modules.values()]
+        for module in MODULE_LIST:
+            if re.match(r'win32com\.gen_py\..+', module):
+                del sys.modules[module]
+        shutil.rmtree(os.path.abspath(os.path.join(win32_gen_path, os.path.pardir)))
+        EnsureDispatch(name)
+
+for name in [Sapi5InProcEngine.recognizer_dispatch_name, "SAPI.SpVoice"]:
+    _fix_cache(name)
 
 
 class DragonflyWrapper:
